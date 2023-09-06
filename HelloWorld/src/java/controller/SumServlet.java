@@ -28,14 +28,24 @@ public class SumServlet extends HttpServlet {
         response.setContentType("text/html");
         //lay ve du lieu cua number
         String numberRaw = request.getParameter("number");
-        //chuyen tu kieu du lieu string sang kieu du lieu int
-        int number = Integer.parseInt(numberRaw);
+        try {
+            //chuyen tu kieu du lieu string sang kieu du lieu int
+            int number = Integer.parseInt(numberRaw);
+            //kiem tra xem number co phai > 1
+            if (number <= 1) {
+                request.setAttribute("error", "You input wrong");
+            }else {
+                //luu tru gia tri muon mang di vao trong request
+                request.setAttribute("sum", calculatePrimeSum(number));
+            }
+            
+            
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "You input wrong");
+        }
         
         
-        // Actual logic goes here.
-        PrintWriter out = response.getWriter();
-        out.println("<h1>" + calculatePrimeSum(number) + "</h1>");
-
+        request.getRequestDispatcher("display.jsp").forward(request, response);
     }
 
     public static int calculatePrimeSum(int n) {
