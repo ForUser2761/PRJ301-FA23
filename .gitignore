@@ -10,3 +10,7 @@
 /nbproject/private/
 /build/
 /dist/
+/JavaApplication28/nbproject/private/
+**/nbproject/private/
+**/build/
+**/dist/
