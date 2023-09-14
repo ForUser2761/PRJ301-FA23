@@ -77,14 +77,10 @@ public class HomeServlet extends HttpServlet {
                 //add account vao collections
                 manage.getListAccount().add(account);
 
-                //set vao request
-                request.setAttribute("listRole", manage.getListRole());
-                request.setAttribute("listAccount", manage.getListAccount());
                 break;
             default:
                 throw new AssertionError();
         }
-
-        request.getRequestDispatcher("display.jsp").forward(request, response);
+        response.sendRedirect("home");
     }
 }
