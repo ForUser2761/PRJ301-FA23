@@ -15,8 +15,16 @@
     <body>
         <form action="home?action=search" method="POST">
             <input type="text" name="keyword" placeholder="Hay nhap vao tu khoa de tim kiem"/> 
+            <select name="property">
+                <option value="id">Id</option>
+                <option value="username">Username</option>
+                <option value="password">Password</option>
+            </select>
             <input type="submit" value="SEARCH">
         </form>
+
+        <button onclick="addNew()">Add new</button>
+
         <br/>
         <br/>
         <table border="1">
@@ -24,6 +32,7 @@
                 <th>Id</th>
                 <th>Username</th>
                 <th>Password</th>
+                <td>ACTION</td>
             </tr>
             <c:forEach items="${listAccount}" var="account">
                 <tr>
@@ -33,9 +42,38 @@
                     <td>${account.name}</td>
                     <!--Password-->
                     <td>${account.password}</td>
+                    <td>
+                        <form action="home?action=delete&id=${account.id}" method="POST">
+                            <input type="submit" value="Delete"/>
+                        </form>
+                        
+                    </td>
                 </tr>
             </c:forEach>
 
         </table>
+
+
+        <form action="home?action=add" method="POST" id="form-add" style="display: none">
+            <h1>Form dang ki </h1>
+            <br/><br/>
+            Username <input type="text" name="username"/>
+            <br/><br/>
+            Password <input type="password" name="password"/>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <script>
+            function addNew() {
+                let formAdd = document.getElementById("form-add");
+                //chinh sua thuoc tinh display = block
+                if (formAdd.style.display == "block") {
+                    formAdd.style.display = "none";
+                } else {
+                    formAdd.style.display = "block";
+                }
+            }
+        </script>
     </body>
 </html>

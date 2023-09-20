@@ -5,6 +5,7 @@
 package dal;
 
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,21 +49,21 @@ public class AccountDAO extends DBContext {
         return list;
     }
 
-    public List<Account> findByKeyword(String keyword) {
+    public List<Account> findByKeyword(String property, String keyword) {
         List<Account> list = new ArrayList<>();
         //ket noi duoc voi database
         connection = getConnection();
         //co cau lenh de goi xuong database
         String sql = "select  name, password, id\n"
                 + "from Account\n"
-                + "where name like ?";
+                + "where " + property + " like ?";
         try {
             //chuan bi cho cau lenh
             statement = connection.prepareStatement(sql);
-            
+
             //set parameter
             statement.setString(1, "%" + keyword + "%");
-            
+
             //thuc thi cau lenh o tren => tra ve ket qua
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -84,5 +85,60 @@ public class AccountDAO extends DBContext {
         }
         return list;
     }
-    
+
+    public int insert(String name, String password) {
+        //ket noi duoc voi database
+        connection = getConnection();
+        //co cau lenh de goi xuong database
+        String sql = "INSERT INTO [dbo].[Account]\n"
+                + "           ([name]\n"
+                + "           ,[password])\n"
+                + "     VALUES\n"
+                + "           (? , ? )";
+
+        try {
+            //chuan bi cho cau lenh
+            statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            //set parameter
+            statement.setString(1, name);
+            statement.setString(2, password);
+
+            //thuc thi cau lenh o tren => tra ve ket qua
+            statement.executeUpdate();
+            resultSet = statement.getGeneratedKeys();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("Error " + ex.getMessage() + "at DBContext method: findAll");
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return -1;
+    }
+
+    public void delete(String id) {
+        //ket noi duoc voi database
+        connection = getConnection();
+        //co cau lenh de goi xuong database
+        String sql = "DELETE FROM [dbo].[Account]\n"
+                + "      WHERE id = ?";
+
+        try {
+            //chuan bi cho cau lenh
+            statement = connection.prepareStatement(sql);
+
+            //set parameter
+            statement.setObject(1, id);
+            
+            //thuc thi cau lenh o tren => tra ve ket qua
+            statement.executeUpdate();
+
+        } catch (SQLException ex) {
+            System.out.println("Error " + ex.getMessage() + "at DBContext method: findAll");
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }
