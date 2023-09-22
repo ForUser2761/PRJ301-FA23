@@ -43,17 +43,20 @@
                     <!--Password-->
                     <td>${account.password}</td>
                     <td>
+                        <!--Delete-->
                         <form action="home?action=delete&id=${account.id}" method="POST">
                             <input type="submit" value="Delete"/>
                         </form>
-                        
+                        <!--Update-->
+                        <button onclick="update(`${account.name}`, `${account.password}`, `${account.id}`)">Update</button>
                     </td>
+
                 </tr>
             </c:forEach>
 
         </table>
 
-
+        <!--Form dang ki-->
         <form action="home?action=add" method="POST" id="form-add" style="display: none">
             <h1>Form dang ki </h1>
             <br/><br/>
@@ -64,6 +67,17 @@
             <button type="submit">Register</button>
         </form>
 
+        <!--Form update-->
+        <form action="home?action=update" method="POST" id="form-update" style="display: none">
+            <h1>Form Update </h1>
+            <br/><br/>
+            <input type="text" name="id" style="display:none"/>
+            Username <input type="text" name="username" />
+            <br/><br/>
+            Password <input type="password" name="password"/>
+
+            <button type="submit">Update</button>
+        </form>
         <script>
             function addNew() {
                 let formAdd = document.getElementById("form-add");
@@ -73,6 +87,26 @@
                 } else {
                     formAdd.style.display = "block";
                 }
+            }
+
+            function update(username, password, id) {
+                //hien thi ra form update
+                let formUpdate = document.getElementById("form-update");
+                if (formUpdate.style.display == "block") {
+                    formUpdate.style.display = "none";
+                } else {
+                    formUpdate.style.display = "block";
+                }
+
+                //lay cac username, password tu tham so dap vao ben trong form
+                let usernameInput = document.querySelector("#form-update input[name='username']");
+                let passwordInput = document.querySelector("#form-update input[name='password']");
+                let idInput = document.querySelector("#form-update input[name='id']");
+                
+                console.log(id);
+                usernameInput.value = username;
+                passwordInput.value = password;
+                idInput.value = id;
             }
         </script>
     </body>

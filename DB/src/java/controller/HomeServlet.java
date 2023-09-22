@@ -59,6 +59,9 @@ public class HomeServlet extends HttpServlet {
             case "delete":
                 deleteFunction(request, response);
                 break;
+            case "update":
+                updateFunction(request, response);
+                break;
             default:
                 throw new AssertionError();
         }
@@ -100,9 +103,21 @@ public class HomeServlet extends HttpServlet {
 
     private void deleteFunction(HttpServletRequest request, HttpServletResponse response) {
         AccountDAO dao = new AccountDAO();
-        
+
         //get id
         String id = request.getParameter("id");
         dao.delete(id);
+    }
+
+    private void updateFunction(HttpServletRequest request, HttpServletResponse response) {
+        AccountDAO dao = new AccountDAO();
+
+        //get information
+        int id = Integer.parseInt(request.getParameter("id"));
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        
+        Account account = new Account(id, username, password);
+        dao.update(account);
     }
 }

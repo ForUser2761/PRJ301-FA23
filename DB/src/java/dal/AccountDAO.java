@@ -131,12 +131,39 @@ public class AccountDAO extends DBContext {
 
             //set parameter
             statement.setObject(1, id);
-            
+
             //thuc thi cau lenh o tren => tra ve ket qua
             statement.executeUpdate();
 
         } catch (SQLException ex) {
             System.out.println("Error " + ex.getMessage() + "at DBContext method: findAll");
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void update(Account account) {
+        //co cau lenh de goi xuong database
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [name] = ?\n"
+                + "      ,[password] = ?\n"
+                + " WHERE id = ?";
+        //ket noi duoc voi database
+        connection = getConnection();
+
+        try {
+            //chuan bi cho cau lenh
+            statement = connection.prepareStatement(sql);
+
+            //set parameter
+            statement.setObject(1, account.getName());
+            statement.setObject(2, account.getPassword());
+            statement.setObject(3, account.getId());
+
+            //thuc thi cau lenh o tren => tra ve ket qua
+            statement.executeUpdate();
+
+        } catch (SQLException ex) {
+            System.out.println("Error " + ex.getMessage() + "at DBContext method: update");
             Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
