@@ -75,15 +75,15 @@ public class HomeServlet extends HttpServlet {
         switch (property) {
             case "id":
                 //search theo id
-                listFound = dao.findByKeyword("id", keyword);
+//                listFound = dao.findByKeyword("id", keyword);
                 break;
             case "username":
                 //search theo username
-                listFound = dao.findByKeyword("name", keyword);
+//                listFound = dao.findByKeyword("name", keyword);
                 break;
             case "password":
                 //search theo password
-                listFound = dao.findByKeyword("password", keyword);
+//                listFound = dao.findByKeyword("password", keyword);
                 break;
             default:
                 throw new AssertionError();
@@ -98,7 +98,7 @@ public class HomeServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         AccountDAO dao = new AccountDAO();
-        dao.insert(name, password);
+//        dao.insert(name, password);
     }
 
     private void deleteFunction(HttpServletRequest request, HttpServletResponse response) {
@@ -106,7 +106,7 @@ public class HomeServlet extends HttpServlet {
 
         //get id
         String id = request.getParameter("id");
-        dao.delete(id);
+//        dao.delete(id);
     }
 
     private void updateFunction(HttpServletRequest request, HttpServletResponse response) {
@@ -118,6 +118,6 @@ public class HomeServlet extends HttpServlet {
         String password = request.getParameter("password");
         
         Account account = new Account(id, username, password);
-        dao.update(account);
+//        dao.update(account);
     }
 }
