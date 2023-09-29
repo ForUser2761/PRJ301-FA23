@@ -13,11 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.lang.reflect.InvocationTargetException;
 
 public class DBContext_1<T> {
 
     protected Connection connection;
     protected PreparedStatement statement;
+    protected ResultSet resultSet;
     // Các constant đại diện cho giá trị true và false trong việc sử dụng OR và AND
     public static final boolean CONDITION_OR = true;
     public static final boolean CONDITION_AND = false;
@@ -31,7 +33,7 @@ public class DBContext_1<T> {
     public Connection getConnection() throws ClassNotFoundException {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=DBTest";
+            String url = "jdbc:sqlserver://localhost:1433;databaseName=PRJ301_SU23";
             String user = "sa";
             String password = "12345678";
             connection = DriverManager.getConnection(url, user, password);
@@ -133,6 +135,111 @@ public class DBContext_1<T> {
         return list;
     }
 
+    public <T> List<T> query(Class<T> clazz, Map<String, Object> conditions) {
+
+        List<T> result = new ArrayList<>();
+        try {
+            // Lấy kết nối
+            connection = getConnection();
+
+            // Tạo câu lệnh SELECT
+            String sql = "SELECT * FROM " + clazz.getSimpleName();
+
+            // Thêm điều kiện WHERE nếu có
+            if (conditions != null && !conditions.isEmpty()) {
+                sql += " WHERE ";
+                // code thêm điều kiện WHERE
+            }
+
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sql);
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            while (resultSet.next()) {
+                // Gọi hàm mapRow để map đối tượng
+                T obj = mapRow(resultSet, clazz);
+
+                // Thêm vào danh sách kết quả
+                result.add(obj);
+            }
+
+            return result;
+        } catch (Exception e) {
+            System.out.println("Exception: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                System.out.println("Exception: " + e.getMessage());
+            }
+        }
+        return result;
+    }
+
+    // Hàm mapRow để map result set sang đối tượng
+    public static <T> T mapRow(ResultSet rs, Class<T> clazz) throws
+            SQLException,
+            NoSuchMethodException,
+            InstantiationException,
+            IllegalArgumentException,
+            IllegalAccessException,
+            InvocationTargetException {
+
+        // Khởi tạo đối tượng
+        T obj = clazz.getDeclaredConstructor().newInstance();
+
+        // Lấy danh sách các field của lớp
+        Field[] fields = clazz.getDeclaredFields();
+
+        // Duyệt qua từng field
+        for (Field field : fields) {
+
+            // Set giá trị cho field
+            Object value = getFieldValue(rs, field);
+            field.setAccessible(true);
+            field.set(obj, value);
+        }
+
+        return obj;
+    }
+
+// Hàm lấy giá trị cho field từ result set
+    private static Object getFieldValue(ResultSet rs, Field field) throws SQLException {
+
+        Class<?> fieldType = field.getType();
+        String fieldName = field.getName();
+
+        // Kiểm tra kiểu dữ liệu và convert sang đúng kiểu
+        if (fieldType == String.class) {
+            return rs.getString(fieldName);
+        } else if (fieldType == int.class || fieldType == Integer.class) {
+            return rs.getInt(fieldName);
+        } else if (fieldType == long.class || fieldType == Long.class) {
+            return rs.getLong(fieldName);
+        } else if (fieldType == double.class || fieldType == Double.class) {
+            return rs.getDouble(fieldName);
+        } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+            return rs.getBoolean(fieldName);
+        } else if (fieldType == float.class || fieldType == Float.class) {
+            return rs.getFloat(fieldName);
+        } else {
+            return rs.getObject(fieldName);
+        }
+    }
+
     /**
      *
      * @param object
@@ -207,8 +314,10 @@ public class DBContext_1<T> {
                 throw new RuntimeException(ex);
             }
             throw new RuntimeException(e);
+
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBContext_1.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBContext_1.class
+                    .getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 if (connection != null) {
@@ -268,8 +377,10 @@ public class DBContext_1<T> {
         ResultSet resultSet = null;
         try {
             connection = getConnection();
+
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBContext_1.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBContext_1.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
         int id = 0;
         try {
@@ -347,8 +458,10 @@ public class DBContext_1<T> {
 
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
+
         } catch (SQLException ex) {
-            Logger.getLogger(DBContext_1.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBContext_1.class
+                    .getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 if (connection != null) {
@@ -366,20 +479,33 @@ public class DBContext_1<T> {
             }
         }
         return 0;
+
     }
 
     private int getSqlType(Class<?> clazz) {
-        if (clazz.equals(Integer.class) || clazz.equals(int.class)) {
+        if (clazz.equals(Integer.class
+        ) || clazz.equals(
+                int.class
+        )) {
             return Types.INTEGER;
-        } else if (clazz.equals(String.class)) {
+        } else if (clazz.equals(String.class
+        )) {
             return Types.NVARCHAR;
-        } else if (clazz.equals(Date.class)) {
+        } else if (clazz.equals(Date.class
+        )) {
             return Types.TIMESTAMP;
-        } else if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) {
+        } else if (clazz.equals(Boolean.class
+        ) || clazz.equals(
+                boolean.class
+        )) {
             return Types.BOOLEAN;
-        } else if (clazz.equals(BigDecimal.class)) {
+        } else if (clazz.equals(BigDecimal.class
+        )) {
             return Types.NUMERIC;
-        } else if (clazz.equals(Float.class) || clazz.equals(float.class)) {
+        } else if (clazz.equals(Float.class
+        ) || clazz.equals(
+                float.class
+        )) {
             return Types.FLOAT;
         } else {
             // Thêm kiểu dữ liệu khác nếu cần thiết
