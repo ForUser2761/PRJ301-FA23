@@ -24,23 +24,81 @@ public abstract class GenericDAO<T> extends DBContext {
 
     protected PreparedStatement statement;
     protected ResultSet resultSet;
-    protected HashMap<String, Object> conditions;
+    protected HashMap<String, Object> parameterMap;
     // Các constant đại diện cho giá trị true và false trong việc sử dụng OR và AND
     public static final boolean CONDITION_OR = true;
     public static final boolean CONDITION_AND = false;
 
     /**
      * Hàm này sử dụng để get dữ liệu từ database lên dựa trên tên bảng mà bạn
-     * mong muốn Condition (optional) là ám chỉ những giá trị như and hoặc or.Hãy sử
-     * dụng những biến sẵn có CONDITION_OR, CONDITION_AND ví dụ:
-     * GenericDAO.CONDITION_OR hoặc GenericDAO.CONDITION_AND.Hàm sẽ mặc định
-     * trả về một List có thể có giá trị hoặc List rỗng
+     * mong muốn.Hàm sẽ mặc định trả về một List có thể có giá trị hoặc List rỗng
      *
      * @param clazz: tên bảng bạn muốn get dữ liệu về
+     * @return list
+     */
+    protected List<T> queryGenericDAO(Class<T> clazz) {
+        List<T> result = new ArrayList<>();
+        try {
+            // Lấy kết nối
+            connection = getConnection();
+
+            // Tạo câu lệnh SELECT
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT * FROM ").append(clazz.getSimpleName());
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            while (resultSet.next()) {
+                // Gọi hàm mapRow để map đối tượng
+                T obj = mapRow(resultSet, clazz);
+
+                // Thêm vào danh sách kết quả
+                result.add(obj);
+            }
+
+            return result;
+        } catch (IllegalAccessException
+                | IllegalArgumentException
+                | InstantiationException
+                | NoSuchMethodException
+                | InvocationTargetException
+                | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Hàm này sử dụng để get dữ liệu từ database lên dựa trên tên bảng mà bạn
+     * mong muốn Condition (optional) là ám chỉ những giá trị như and hoặc
+     * or.Hãy sử dụng những biến sẵn có CONDITION_OR, CONDITION_AND ví dụ:
+     * GenericDAO.CONDITION_OR hoặc GenericDAO.CONDITION_AND.Hàm sẽ mặc định trả
+     * về một List có thể có giá trị hoặc List rỗng
+     *
+     * @param clazz: tên bảng bạn muốn get dữ liệu về
+     * @param parameterHashmap: hashmap chứa các parameter
      * @param condition: điều kiện AND hoặc OR
      * @return list
      */
-    public List<T> query(Class<T> clazz, boolean... condition) {
+    protected List<T> queryGenericDAO(Class<T> clazz, HashMap<String, Object> parameterHashmap, boolean... condition) {
 
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
         List<T> result = new ArrayList<>();
@@ -55,10 +113,10 @@ public abstract class GenericDAO<T> extends DBContext {
             List<Object> parameters = new ArrayList<>();
 
             // Thêm điều kiện WHERE nếu có
-            if (conditions != null && !conditions.isEmpty()) {
+            if (parameterHashmap != null && !parameterHashmap.isEmpty()) {
                 sqlBuilder.append(" WHERE ");
                 // code thêm điều kiện WHERE
-                for (Map.Entry<String, Object> entry : conditions.entrySet()) {
+                for (Map.Entry<String, Object> entry : parameterHashmap.entrySet()) {
                     String conditionField = entry.getKey();
                     Object conditionValue = entry.getValue();
 
@@ -75,7 +133,7 @@ public abstract class GenericDAO<T> extends DBContext {
                 sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
             }
 
-            System.out.println(sqlBuilder.toString());
+            System.err.println("queryGenericDAO: " + sqlBuilder.toString());
 
             // Chuẩn bị câu lệnh
             statement = connection.prepareStatement(sqlBuilder.toString());
@@ -120,7 +178,7 @@ public abstract class GenericDAO<T> extends DBContext {
                 if (connection != null) {
                     connection.close();
                 }
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
             }
         }
@@ -135,10 +193,11 @@ public abstract class GenericDAO<T> extends DBContext {
      * trị hoặc List rỗng
      *
      * @param clazz: bảng bạn muốn get dữ liệu về
+     * @param parameterHashMap: hashmap chứa các parameter
      * @param condition: điều kiện AND hoặc OR
      * @return list
      */
-    public List<T> queryContainKeyword(Class<T> clazz, boolean... condition) {
+    protected List<T> queryContainKeywordGenericDAO(Class<T> clazz, HashMap<String, Object> parameterHashMap, boolean... condition) {
 
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
         List<T> result = new ArrayList<>();
@@ -153,10 +212,10 @@ public abstract class GenericDAO<T> extends DBContext {
             List<Object> parameters = new ArrayList<>();
 
             // Thêm điều kiện WHERE nếu có
-            if (conditions != null && !conditions.isEmpty()) {
+            if (parameterHashMap != null && !parameterHashMap.isEmpty()) {
                 sqlBuilder.append(" WHERE ");
                 // code thêm điều kiện WHERE
-                for (Map.Entry<String, Object> entry : conditions.entrySet()) {
+                for (Map.Entry<String, Object> entry : parameterHashMap.entrySet()) {
                     String conditionField = entry.getKey();
                     Object conditionValue = entry.getValue();
 
@@ -173,8 +232,7 @@ public abstract class GenericDAO<T> extends DBContext {
                 sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
             }
 
-            System.out.println(sqlBuilder.toString());
-
+            System.err.println("queryContainKeywordGenericDAO: " + sqlBuilder.toString());
             // Chuẩn bị câu lệnh
             statement = connection.prepareStatement(sqlBuilder.toString());
 
@@ -218,7 +276,7 @@ public abstract class GenericDAO<T> extends DBContext {
                 if (connection != null) {
                     connection.close();
                 }
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 System.err.println("4USER: Bắn Exception ở hàm queryContainKeyword: " + e.getMessage());
             }
         }
@@ -302,10 +360,11 @@ public abstract class GenericDAO<T> extends DBContext {
      * tăng
      *
      * @param object: giá trị của đối tượng muốn update
+     * @param parameterHashMap: hashmap chứa các parameter
      * @param condition: điều kiện AND hoặc OR
      * @return true: update thành công | false: update thất bại
      */
-    public boolean update(T object, boolean... condition) {
+    protected boolean updateGenericDAO(T object, HashMap<String, Object> parameterHashMap, boolean... condition) {
         Class<?> clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
@@ -334,10 +393,10 @@ public abstract class GenericDAO<T> extends DBContext {
             sqlBuilder.delete(sqlBuilder.length() - 2, sqlBuilder.length());
         }
 
-        if (conditions != null && !conditions.isEmpty()) {
+        if (parameterHashMap != null && !parameterHashMap.isEmpty()) {
             sqlBuilder.append(" WHERE ");
             int index = 0;
-            for (Map.Entry<String, Object> entry : conditions.entrySet()) {
+            for (Map.Entry<String, Object> entry : parameterHashMap.entrySet()) {
                 String conditionField = entry.getKey();
                 Object conditionValue = entry.getValue();
 
@@ -363,7 +422,7 @@ public abstract class GenericDAO<T> extends DBContext {
                 statement.setObject(index, value);
                 index++;
             }
-
+            System.err.println("updateGenericDAO: " + sqlBuilder.toString());
             statement.executeUpdate();
             connection.commit();
             return true;
@@ -387,13 +446,90 @@ public abstract class GenericDAO<T> extends DBContext {
             }
         }
     }
-    
+
     /**
-     * Hàm này sử dụng để insert một dữ liệu của một đối tượng vào một bảng trong database
+     * Hàm này sử dụng để update thông tin của một đối tượng trong Database.Hãy
+     * nhớ rằng hàm này không update ID vì mặc định các bảng sẽ để ID tự động
+     * tăng
+     *
+     * @param clazz: tên của class
+     * @param parameterHashMap: hashmap chứa các parameter
+     * @param condition: điều kiện AND hoặc OR
+     * @return true: delete thành công | false: delete thất bại
+     */
+    protected boolean deleteGenericDAO(Class<T> clazz, HashMap<String, Object> parameterHashMap, boolean... condition) {
+        boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
+        StringBuilder sqlBuilder = new StringBuilder();
+        sqlBuilder.append("DELETE FROM ").append(clazz.getSimpleName());
+
+        List<Object> parameters = new ArrayList<>();
+
+        if (sqlBuilder.charAt(sqlBuilder.length() - 2) == ',') {
+            sqlBuilder.delete(sqlBuilder.length() - 2, sqlBuilder.length());
+        }
+
+        if (parameterHashMap != null && !parameterHashMap.isEmpty()) {
+            sqlBuilder.append(" WHERE ");
+            int index = 0;
+            for (Map.Entry<String, Object> entry : parameterHashMap.entrySet()) {
+                String conditionField = entry.getKey();
+                Object conditionValue = entry.getValue();
+
+                if (index > 0) {
+                    // Dùng AND hoặc OR tùy thuộc vào giá trị của useOr
+                    sqlBuilder.append(isConditionAnd ? " AND " : " OR ");
+                }
+
+                sqlBuilder.append(conditionField).append(" = ?");
+                parameters.add(conditionValue);
+
+                index++;
+            }
+        }
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+            statement = connection.prepareStatement(sqlBuilder.toString());
+
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+            System.err.println("deleteGenericDAO: " + sqlBuilder.toString());
+            statement.executeUpdate();
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                System.err.println("4USER: Bắn Exception ở hàm delete: " + ex.getMessage());
+            }
+            return false;
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm update: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Hàm này sử dụng để insert một dữ liệu của một đối tượng vào một bảng
+     * trong database
+     *
      * @param object: đối tượng chứa các thông tin muốn insert
      * @return 0: insert thất bại: || !0 : insert thành công
      */
-    public int insert(T object) {
+    protected int insertGenericDAO(T object) {
         Class<?> clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
 
@@ -456,7 +592,7 @@ public abstract class GenericDAO<T> extends DBContext {
             if (resultSet.next()) {
                 id = resultSet.getInt(1);
             }
-
+            System.err.println("insertGenericDAO: " + sqlBuilder.toString());
             // Xác nhận giao dịch thành công
             connection.commit();
         } catch (SQLException e) {
@@ -486,15 +622,14 @@ public abstract class GenericDAO<T> extends DBContext {
         // Trả về ID được tạo tự động (nếu có)
         return id;
     }
-    
+
     /**
-     * Tìm số lượng record của 1 bảng nào đó, điều kiện (optional)
+     * Tìm số lượng record của 1 bảng nào đó
+     *
      * @param clazz: bảng muốn tìm
-     * @param condition: (optional) điều kiện AND hoặc OR
      * @return số lượng record
      */
-    public int findTotalRecord(Class<T> clazz, boolean... condition) {
-        boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
+    protected int findTotalRecordGenericDAO(Class<T> clazz) {
         int total = 0;
         try {
             // Lấy kết nối
@@ -506,28 +641,8 @@ public abstract class GenericDAO<T> extends DBContext {
             //List parameter
             List<Object> parameters = new ArrayList<>();
 
-            // Thêm điều kiện WHERE nếu có
-            if (conditions != null && !conditions.isEmpty()) {
-                sqlBuilder.append(" WHERE ");
-                // code thêm điều kiện WHERE
-                for (Map.Entry<String, Object> entry : conditions.entrySet()) {
-                    String conditionField = entry.getKey();
-                    Object conditionValue = entry.getValue();
 
-                    sqlBuilder.append(conditionField).append(" = ? ");
-                    if (isConditionAnd) {
-                        sqlBuilder.append("AND ");
-                    } else {
-                        sqlBuilder.append("OR ");
-                    }
-
-                    parameters.add(conditionValue);
-                }
-                // Xóa phần AND hoặc OR cuối cùng khỏi câu truy vấn
-                sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
-            }
-
-            System.out.println(sqlBuilder.toString());
+            System.err.println("findTotalRecordGenericDAO: " + sqlBuilder.toString());
 
             // Chuẩn bị câu lệnh
             statement = connection.prepareStatement(sqlBuilder.toString());
@@ -562,7 +677,91 @@ public abstract class GenericDAO<T> extends DBContext {
                 if (connection != null) {
                     connection.close();
                 }
-            } catch (Exception e) {
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Tìm số lượng record của 1 bảng nào đó, điều kiện (optional)
+     *
+     * @param clazz: bảng muốn tìm
+     * @param parameterHashMap: hashmap chứa các parameter
+     * @param condition: (optional) điều kiện AND hoặc OR
+     * @return số lượng record
+     */
+    protected int findTotalRecordGenericDAO(Class<T> clazz, HashMap<String, Object> parameterHashMap, boolean... condition) {
+        boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
+        int total = 0;
+        try {
+            // Lấy kết nối
+            connection = getConnection();
+
+            // Tạo câu lệnh SELECT
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT COUNT(*) FROM ").append(clazz.getSimpleName());
+            //List parameter
+            List<Object> parameters = new ArrayList<>();
+
+            // Thêm điều kiện WHERE nếu có
+            if (parameterHashMap != null && !parameterHashMap.isEmpty()) {
+                sqlBuilder.append(" WHERE ");
+                // code thêm điều kiện WHERE
+                for (Map.Entry<String, Object> entry : parameterHashMap.entrySet()) {
+                    String conditionField = entry.getKey();
+                    Object conditionValue = entry.getValue();
+
+                    sqlBuilder.append(conditionField).append(" = ? ");
+                    if (isConditionAnd) {
+                        sqlBuilder.append("AND ");
+                    } else {
+                        sqlBuilder.append("OR ");
+                    }
+
+                    parameters.add(conditionValue);
+                }
+                // Xóa phần AND hoặc OR cuối cùng khỏi câu truy vấn
+                sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
+            }
+
+            System.err.println("findTotalRecordGenericDAO: " + sqlBuilder.toString());
+
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sqlBuilder.toString());
+
+            // Gán giá trị cho các tham số của câu truy vấn
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            if (resultSet.next()) {
+                total = resultSet.getInt(1);
+            }
+
+        } catch (IllegalArgumentException | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
                 System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
             }
         }
