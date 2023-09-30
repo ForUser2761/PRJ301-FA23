@@ -1,78 +1,52 @@
 /*				
  * Copyright (C) FPT University , Ltd. 2023	
- * 07/02/2023 FPT VinhPK2 DEBIT_BOOK_ITER1
+ * 30/09/2023 FPT 4USER
  */
 package dal;
 
-import mapper.IGenericMapper;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.sql.*;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.lang.reflect.InvocationTargetException;
 
-public class DBContext_1<T> {
+/**
+ *
+ * @author 4USER
+ * @param <T>
+ */
+public abstract class GenericDAO<T> extends DBContext {
 
-    protected Connection connection;
     protected PreparedStatement statement;
     protected ResultSet resultSet;
+    protected HashMap<String, Object> conditions;
     // Các constant đại diện cho giá trị true và false trong việc sử dụng OR và AND
     public static final boolean CONDITION_OR = true;
     public static final boolean CONDITION_AND = false;
 
-    /**
-     * get an connection
-     *
-     * @return connection or null
-     * @throws ClassNotFoundException
-     */
-    public Connection getConnection() throws ClassNotFoundException {
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=PRJ301_SU23";
-            String user = "sa";
-            String password = "12345678";
-            connection = DriverManager.getConnection(url, user, password);
-            return connection;
-        } catch (SQLException e) {
-            System.out.println("Error " + e.getMessage() + "at DBContext");
-            e.printStackTrace();
-            return null;
-        }
-    }
+    public List<T> query(Class<T> clazz, boolean... condition) {
 
-    /**
-     * get data from database
-     *
-     * @param entity : object represent table of data that we want to get
-     * @param rowMapper : convert from ResultSet to List<T>
-     * @param conditions : conditions for getting data
-     * @return List
-     */
-    public List<T> query(T entity, IGenericMapper<T> rowMapper, Map<String, Object> conditions, boolean... condition) {
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
-        List<T> list = new ArrayList<>();
-        ResultSet resultSet = null;
-
+        List<T> result = new ArrayList<>();
         try {
-            // Lấy thông tin lớp của đối tượng thực thể
-            Class<?> clazz = entity.getClass();
-            Field[] fields = clazz.getDeclaredFields();
+            // Lấy kết nối
+            connection = getConnection();
 
-            // Xây dựng câu truy vấn SELECT * FROM <table_name>
+            // Tạo câu lệnh SELECT
             StringBuilder sqlBuilder = new StringBuilder();
             sqlBuilder.append("SELECT * FROM ").append(clazz.getSimpleName());
-
-            // Danh sách các giá trị tham số của câu truy vấn
+            //List parameter
             List<Object> parameters = new ArrayList<>();
 
-            // Nếu có điều kiện, thêm phần WHERE vào câu truy vấn
+            // Thêm điều kiện WHERE nếu có
             if (conditions != null && !conditions.isEmpty()) {
                 sqlBuilder.append(" WHERE ");
+                // code thêm điều kiện WHERE
                 for (Map.Entry<String, Object> entry : conditions.entrySet()) {
                     String conditionField = entry.getKey();
                     Object conditionValue = entry.getValue();
@@ -90,11 +64,9 @@ public class DBContext_1<T> {
                 sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
             }
 
-            // In ra câu truy vấn (thường dùng cho mục đích debug)
             System.out.println(sqlBuilder.toString());
 
-            // Kết nối đến cơ sở dữ liệu và chuẩn bị câu truy vấn
-            connection = getConnection();
+            // Chuẩn bị câu lệnh
             statement = connection.prepareStatement(sqlBuilder.toString());
 
             // Gán giá trị cho các tham số của câu truy vấn
@@ -103,56 +75,6 @@ public class DBContext_1<T> {
                 statement.setObject(index, value);
                 index++;
             }
-
-            // Thực thi câu truy vấn
-            resultSet = statement.executeQuery();
-
-            // Duyệt qua kết quả và ánh xạ thành các đối tượng thực thể
-            while (resultSet.next()) {
-                list.add(rowMapper.mapRow(resultSet));
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("PHAM KHAC VINH: Loi o ham query");
-            throw new RuntimeException(e);
-        } finally {
-            // Đảm bảo đóng tất cả kết nối và tài nguyên
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-                if (statement != null) {
-                    statement.close();
-                }
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("PHAM KHAC VINH: Loi o ham query");
-                throw new RuntimeException(e);
-            }
-        }
-        // Trả về danh sách các đối tượng thực thể
-        return list;
-    }
-
-    public <T> List<T> query(Class<T> clazz, Map<String, Object> conditions) {
-
-        List<T> result = new ArrayList<>();
-        try {
-            // Lấy kết nối
-            connection = getConnection();
-
-            // Tạo câu lệnh SELECT
-            String sql = "SELECT * FROM " + clazz.getSimpleName();
-
-            // Thêm điều kiện WHERE nếu có
-            if (conditions != null && !conditions.isEmpty()) {
-                sql += " WHERE ";
-                // code thêm điều kiện WHERE
-            }
-
-            // Chuẩn bị câu lệnh
-            statement = connection.prepareStatement(sql);
 
             // Thực thi truy vấn
             resultSet = statement.executeQuery();
@@ -168,8 +90,13 @@ public class DBContext_1<T> {
             }
 
             return result;
-        } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
+        } catch (IllegalAccessException
+                | IllegalArgumentException
+                | InstantiationException
+                | NoSuchMethodException
+                | InvocationTargetException
+                | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
         } finally {
             try {
                 // Đóng kết nối và các tài nguyên
@@ -183,14 +110,27 @@ public class DBContext_1<T> {
                     connection.close();
                 }
             } catch (Exception e) {
-                System.out.println("Exception: " + e.getMessage());
+                System.err.println("4USER: Bắn Exception ở hàm query: " + e.getMessage());
             }
         }
         return result;
     }
 
-    // Hàm mapRow để map result set sang đối tượng
-    public static <T> T mapRow(ResultSet rs, Class<T> clazz) throws
+    /**
+     * Hàm mapRow để map result set sang đối tượng
+     *
+     * @param <T>
+     * @param rs
+     * @param clazz
+     * @return
+     * @throws SQLException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
+    private static <T> T mapRow(ResultSet rs, Class<T> clazz) throws
             SQLException,
             NoSuchMethodException,
             InstantiationException,
@@ -216,7 +156,14 @@ public class DBContext_1<T> {
         return obj;
     }
 
-// Hàm lấy giá trị cho field từ result set
+    /**
+     * Hàm lấy giá trị cho field từ result set
+     *
+     * @param rs
+     * @param field
+     * @return
+     * @throws SQLException
+     */
     private static Object getFieldValue(ResultSet rs, Field field) throws SQLException {
 
         Class<?> fieldType = field.getType();
@@ -243,10 +190,9 @@ public class DBContext_1<T> {
     /**
      *
      * @param object
-     * @param conditions
-     * @param useOr true: OR false: AND
+     * @param condition
      */
-    public void update(T object, Map<String, Object> conditions, boolean... condition) {
+    public void update(T object, boolean... condition) {
         Class<?> clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
@@ -311,13 +257,8 @@ public class DBContext_1<T> {
             try {
                 connection.rollback();
             } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+                System.err.println("4USER: Bắn Exception ở hàm update: " + ex.getMessage());
             }
-            throw new RuntimeException(e);
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBContext_1.class
-                    .getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 if (connection != null) {
@@ -327,7 +268,7 @@ public class DBContext_1<T> {
                     statement.close();
                 }
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.err.println("4USER: Bắn Exception ở hàm update: " + e.getMessage());
             }
         }
     }
@@ -374,14 +315,7 @@ public class DBContext_1<T> {
         }
 
         sqlBuilder.append(")");
-        ResultSet resultSet = null;
-        try {
-            connection = getConnection();
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBContext_1.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
+        connection = getConnection();
         int id = 0;
         try {
             // Bắt đầu giao dịch và chuẩn bị câu truy vấn
@@ -407,12 +341,11 @@ public class DBContext_1<T> {
             connection.commit();
         } catch (SQLException e) {
             try {
-                System.out.println("PHAM KHAC VINH (LOI INSERT): " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("4USER: Bắn Exception ở hàm insert: " + e.getMessage());
                 // Hoàn tác giao dịch nếu xảy ra lỗi
                 connection.rollback();
             } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+                System.err.println("4USER: Bắn Exception ở hàm insert: " + ex.getMessage());
             }
         } finally {
             // Đảm bảo đóng kết nối và tài nguyên
@@ -427,123 +360,87 @@ public class DBContext_1<T> {
                     resultSet.close();
                 }
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.err.println("4USER: Bắn Exception ở hàm insert: " + e.getMessage());
             }
         }
         // Trả về ID được tạo tự động (nếu có)
         return id;
     }
 
-    /**
-     * find total record of a table
-     *
-     * @param sql
-     * @param parameters
-     * @return total record or 0
-     */
-    public int findTotalRecord(String sql, Parameter... parameters) {
-        ResultSet resultSet = null;
-
+    public int findTotalRecord(Class<T> clazz, boolean... condition) {
+        boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
+        int total = 0;
         try {
+            // Lấy kết nối
             connection = getConnection();
-            statement = connection.prepareStatement(sql);
-            setParameter(parameters);
 
-            resultSet = statement.executeQuery();
+            // Tạo câu lệnh SELECT
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT COUNT(*) FROM ").append(clazz.getSimpleName());
+            //List parameter
+            List<Object> parameters = new ArrayList<>();
 
-            if (resultSet.next()) {
-                int total = resultSet.getInt(1);
-                return total;
+            // Thêm điều kiện WHERE nếu có
+            if (conditions != null && !conditions.isEmpty()) {
+                sqlBuilder.append(" WHERE ");
+                // code thêm điều kiện WHERE
+                for (Map.Entry<String, Object> entry : conditions.entrySet()) {
+                    String conditionField = entry.getKey();
+                    Object conditionValue = entry.getValue();
+
+                    sqlBuilder.append(conditionField).append(" = ? ");
+                    if (isConditionAnd) {
+                        sqlBuilder.append("AND ");
+                    } else {
+                        sqlBuilder.append("OR ");
+                    }
+
+                    parameters.add(conditionValue);
+                }
+                // Xóa phần AND hoặc OR cuối cùng khỏi câu truy vấn
+                sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
             }
 
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            System.out.println(sqlBuilder.toString());
 
-        } catch (SQLException ex) {
-            Logger.getLogger(DBContext_1.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sqlBuilder.toString());
+
+            // Gán giá trị cho các tham số của câu truy vấn
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            if (resultSet.next()) {
+                total = resultSet.getInt(1);
+            }
+
+        } catch (IllegalArgumentException | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
         } finally {
             try {
-                if (connection != null) {
-                    connection.close();
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
                 }
                 if (statement != null) {
                     statement.close();
                 }
-                if (resultSet != null) {
-                    resultSet.close();
+                if (connection != null) {
+                    connection.close();
                 }
-            } catch (SQLException e) {
-                System.out.println("PHAM KHAC VINH: Loi o ham query");
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                System.err.println("4USER: Bắn Exception ở hàm findTotalRecord: " + e.getMessage());
             }
         }
-        return 0;
-
-    }
-
-    private int getSqlType(Class<?> clazz) {
-        if (clazz.equals(Integer.class
-        ) || clazz.equals(
-                int.class
-        )) {
-            return Types.INTEGER;
-        } else if (clazz.equals(String.class
-        )) {
-            return Types.NVARCHAR;
-        } else if (clazz.equals(Date.class
-        )) {
-            return Types.TIMESTAMP;
-        } else if (clazz.equals(Boolean.class
-        ) || clazz.equals(
-                boolean.class
-        )) {
-            return Types.BOOLEAN;
-        } else if (clazz.equals(BigDecimal.class
-        )) {
-            return Types.NUMERIC;
-        } else if (clazz.equals(Float.class
-        ) || clazz.equals(
-                float.class
-        )) {
-            return Types.FLOAT;
-        } else {
-            // Thêm kiểu dữ liệu khác nếu cần thiết
-            return Types.OTHER;
-        }
-    }
-
-    /**
-     * mapping parameter to their types
-     *
-     * @param parameter : parameter we want to pass to the SQL query
-     */
-    private void setParameter(Parameter... parameter) {
-        try {
-            for (int i = 0; i < parameter.length; i++) {
-                Parameter object = parameter[i];
-                int index = i + 1;
-                if (object.getValue() instanceof Integer) {
-                    statement.setInt(index, (int) object.getValue());
-                } else if (object.getValue() instanceof String) {
-                    statement.setString(index, (String) object.getValue());
-                } else if (object.getValue() instanceof Date) {
-                    statement.setDate(index, (Date) object.getValue());
-                } else if (object.getValue() == null) {
-                    statement.setNull(index, object.getType());
-                } else if (object.getValue() instanceof Timestamp) {
-                    statement.setTimestamp(index, (Timestamp) object.getValue());
-                } else if (object.getValue() instanceof Boolean) {
-                    statement.setBoolean(index, (Boolean) object.getValue());
-                } else if (object.getValue() instanceof BigDecimal) {
-                    statement.setBigDecimal(index, (BigDecimal) object.getValue());
-                } else if (object.getValue() instanceof Float) {
-                    statement.setFloat(index, (float) object.getValue());
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return total;
     }
 
 }
