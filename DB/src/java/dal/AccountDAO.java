@@ -6,6 +6,7 @@ package dal;
 
 import java.util.List;
 import model.Account;
+import java.util.HashMap;
 
 /**
  *
@@ -14,7 +15,7 @@ import model.Account;
 public class AccountDAO extends GenericDAO<Account> {
 
     public List<Account> findAll() {
-        List<Account> list = query(Account.class);
+        List<Account> list = queryGenericDAO(Account.class);
         return list;
     }
 
@@ -23,5 +24,31 @@ public class AccountDAO extends GenericDAO<Account> {
             System.out.println(account1);
         }
     }
+
+    public List<Account> findByKeyword(String property, String keyword) {
+        parameterMap = new HashMap<>();
+        parameterMap.put(property, keyword);
+        List<Account> list = queryContainKeywordGenericDAO(Account.class, parameterMap);
+        return list;
+    }
+
+    public void delete(String id) {
+        parameterMap = new HashMap<>();
+        parameterMap.put("id", id);
+        deleteGenericDAO(Account.class, parameterMap);
+    }
+    
+
+    public void updateAccount(Account account) {
+        parameterMap = new HashMap<>();
+        parameterMap.put("id", account.getId());
+        updateGenericDAO(account, parameterMap);
+    }
+
+    public void insert(Account account) {
+        insertGenericDAO(account);
+    }
+    
+    
 
 }
