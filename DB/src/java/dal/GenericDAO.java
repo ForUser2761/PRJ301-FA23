@@ -31,7 +31,8 @@ public abstract class GenericDAO<T> extends DBContext {
 
     /**
      * Hàm này sử dụng để get dữ liệu từ database lên dựa trên tên bảng mà bạn
-     * mong muốn.Hàm sẽ mặc định trả về một List có thể có giá trị hoặc List rỗng
+     * mong muốn.Hàm sẽ mặc định trả về một List có thể có giá trị hoặc List
+     * rỗng
      *
      * @param clazz: tên bảng bạn muốn get dữ liệu về
      * @return list
@@ -46,6 +47,8 @@ public abstract class GenericDAO<T> extends DBContext {
             StringBuilder sqlBuilder = new StringBuilder();
             sqlBuilder.append("SELECT * FROM ").append(clazz.getSimpleName());
 
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sqlBuilder.toString());
             // Thực thi truy vấn
             resultSet = statement.executeQuery();
 
@@ -640,7 +643,6 @@ public abstract class GenericDAO<T> extends DBContext {
             sqlBuilder.append("SELECT COUNT(*) FROM ").append(clazz.getSimpleName());
             //List parameter
             List<Object> parameters = new ArrayList<>();
-
 
             System.err.println("findTotalRecordGenericDAO: " + sqlBuilder.toString());
 
