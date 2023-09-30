@@ -24,11 +24,8 @@ public class DBContext {
             String password = "12345678";
             connection = DriverManager.getConnection(url, user, password);
             return connection;
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             System.err.println("Error " + e.getMessage() + " at DBContext");
-            return null;
-        } catch (ClassNotFoundException ex) {
-            System.err.println("Error " + ex.getMessage() + " at DBContext");
             return null;
         }
     }

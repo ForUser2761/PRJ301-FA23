@@ -32,8 +32,16 @@ public class BookDAO extends GenericDAO<Book>{
         return findTotalRecord(Book.class);
     }
     
+    public List<Book> findByWord() {
+        conditions = new HashMap<>();
+        conditions.put("name", "Pin");
+        List<Book> list = queryContainKeyword(Book.class);
+        return list;
+    }
+    
     public static void main(String[] args) {
-        for (Book book : new BookDAO().findAll()) {
+        System.out.println(new BookDAO().findByWord().size());
+        for (Book book : new BookDAO().findByWord()) {
             System.out.println(book);
         }
     }

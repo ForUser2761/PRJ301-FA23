@@ -29,6 +29,17 @@ public abstract class GenericDAO<T> extends DBContext {
     public static final boolean CONDITION_OR = true;
     public static final boolean CONDITION_AND = false;
 
+    /**
+     * Hàm này sử dụng để get dữ liệu từ database lên dựa trên tên bảng mà bạn
+     * mong muốn Condition (optional) là ám chỉ những giá trị như and hoặc or.Hãy sử
+     * dụng những biến sẵn có CONDITION_OR, CONDITION_AND ví dụ:
+     * GenericDAO.CONDITION_OR hoặc GenericDAO.CONDITION_AND.Hàm sẽ mặc định
+     * trả về một List có thể có giá trị hoặc List rỗng
+     *
+     * @param clazz: tên bảng bạn muốn get dữ liệu về
+     * @param condition: điều kiện AND hoặc OR
+     * @return list
+     */
     public List<T> query(Class<T> clazz, boolean... condition) {
 
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
@@ -117,6 +128,104 @@ public abstract class GenericDAO<T> extends DBContext {
     }
 
     /**
+     * Hàm này sử dụng để get dữ liệu từ database dựa trên từ khóa muốn tìm kiếm
+     * sử dụng wild card % %.Hãy sử dụng những biến sẵn có CONDITION_OR,
+     * CONDITION_AND ví dụ: GenericDAO.CONDITION_OR hoặc
+     * GenericDAO.CONDITION_AND.Hàm sẽ mặc định trả về một List có thể có giá
+     * trị hoặc List rỗng
+     *
+     * @param clazz: bảng bạn muốn get dữ liệu về
+     * @param condition: điều kiện AND hoặc OR
+     * @return list
+     */
+    public List<T> queryContainKeyword(Class<T> clazz, boolean... condition) {
+
+        boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
+        List<T> result = new ArrayList<>();
+        try {
+            // Lấy kết nối
+            connection = getConnection();
+
+            // Tạo câu lệnh SELECT
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT * FROM ").append(clazz.getSimpleName());
+            //List parameter
+            List<Object> parameters = new ArrayList<>();
+
+            // Thêm điều kiện WHERE nếu có
+            if (conditions != null && !conditions.isEmpty()) {
+                sqlBuilder.append(" WHERE ");
+                // code thêm điều kiện WHERE
+                for (Map.Entry<String, Object> entry : conditions.entrySet()) {
+                    String conditionField = entry.getKey();
+                    Object conditionValue = entry.getValue();
+
+                    sqlBuilder.append(conditionField).append(" LIKE ? ");
+                    if (isConditionAnd) {
+                        sqlBuilder.append("AND ");
+                    } else {
+                        sqlBuilder.append("OR ");
+                    }
+
+                    parameters.add(conditionValue);
+                }
+                // Xóa phần AND hoặc OR cuối cùng khỏi câu truy vấn
+                sqlBuilder.delete(sqlBuilder.length() - (isConditionAnd ? 4 : 3), sqlBuilder.length());
+            }
+
+            System.out.println(sqlBuilder.toString());
+
+            // Chuẩn bị câu lệnh
+            statement = connection.prepareStatement(sqlBuilder.toString());
+
+            // Gán giá trị cho các tham số của câu truy vấn
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, "%" + value + "%");
+                index++;
+            }
+
+            // Thực thi truy vấn
+            resultSet = statement.executeQuery();
+
+            // Khai báo danh sách kết quả
+            // Duyệt result set   
+            while (resultSet.next()) {
+                // Gọi hàm mapRow để map đối tượng
+                T obj = mapRow(resultSet, clazz);
+
+                // Thêm vào danh sách kết quả
+                result.add(obj);
+            }
+
+            return result;
+        } catch (IllegalAccessException
+                | IllegalArgumentException
+                | InstantiationException
+                | NoSuchMethodException
+                | InvocationTargetException
+                | SQLException e) {
+            System.err.println("4USER: Bắn Exception ở hàm queryContainKeyword: " + e.getMessage());
+        } finally {
+            try {
+                // Đóng kết nối và các tài nguyên
+                if (resultSet != null) {
+
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (Exception e) {
+                System.err.println("4USER: Bắn Exception ở hàm queryContainKeyword: " + e.getMessage());
+            }
+        }
+        return result;
+    }
+
+    /**
      * Hàm mapRow để map result set sang đối tượng
      *
      * @param <T>
@@ -188,11 +297,15 @@ public abstract class GenericDAO<T> extends DBContext {
     }
 
     /**
+     * Hàm này sử dụng để update thông tin của một đối tượng trong Database.Hãy
+     * nhớ rằng hàm này không update ID vì mặc định các bảng sẽ để ID tự động
+     * tăng
      *
-     * @param object
-     * @param condition
+     * @param object: giá trị của đối tượng muốn update
+     * @param condition: điều kiện AND hoặc OR
+     * @return true: update thành công | false: update thất bại
      */
-    public void update(T object, boolean... condition) {
+    public boolean update(T object, boolean... condition) {
         Class<?> clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
@@ -253,12 +366,14 @@ public abstract class GenericDAO<T> extends DBContext {
 
             statement.executeUpdate();
             connection.commit();
+            return true;
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException ex) {
                 System.err.println("4USER: Bắn Exception ở hàm update: " + ex.getMessage());
             }
+            return false;
         } finally {
             try {
                 if (connection != null) {
@@ -272,7 +387,12 @@ public abstract class GenericDAO<T> extends DBContext {
             }
         }
     }
-
+    
+    /**
+     * Hàm này sử dụng để insert một dữ liệu của một đối tượng vào một bảng trong database
+     * @param object: đối tượng chứa các thông tin muốn insert
+     * @return 0: insert thất bại: || !0 : insert thành công
+     */
     public int insert(T object) {
         Class<?> clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
@@ -366,7 +486,13 @@ public abstract class GenericDAO<T> extends DBContext {
         // Trả về ID được tạo tự động (nếu có)
         return id;
     }
-
+    
+    /**
+     * Tìm số lượng record của 1 bảng nào đó, điều kiện (optional)
+     * @param clazz: bảng muốn tìm
+     * @param condition: (optional) điều kiện AND hoặc OR
+     * @return số lượng record
+     */
     public int findTotalRecord(Class<T> clazz, boolean... condition) {
         boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
         int total = 0;
