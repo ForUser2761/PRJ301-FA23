@@ -3,11 +3,11 @@
     Created on : Oct 2, 2023, 8:16:33 PM
     Author     : ADMIN
 --%>
-
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <section id="navigation-bar">
     <div class="container-fluid">
         <nav class="navbar navbar-expand-lg navbar-light ">
-            <a href="#" class="navbar-brand">4USER</a>
+            <a href="${pageContext.request.contextPath}/home" class="navbar-brand">4USER</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01"
                     aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -30,8 +30,12 @@
                 </ul>
 
                 <nav class="navbar navbar-light bg-light pl-sm-0">
-                    <form class="form-inline">
-                        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                    <form class="form-inline" action="home?action=search" method="POST">
+                        <input class="form-control mr-sm-2" 
+                               type="search" 
+                               placeholder="Tìm kiếm tên sách" 
+                               aria-label="Search"
+                               name="keyword">
                         <button class="btn btn-outline-success my-2 my-sm-0 ml-sm-0" type="submit">Search</button>
                     </form>
                 </nav>

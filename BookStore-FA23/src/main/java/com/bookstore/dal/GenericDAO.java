@@ -4,6 +4,7 @@
  */
 package com.bookstore.dal;
 
+import com.bookstore.entity.Book;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.PreparedStatement;
@@ -122,7 +123,6 @@ public abstract class GenericDAO<T> extends DBContext {
                 }
                 // Xóa phần AND hoặc OR cuối cùng khỏi câu truy vấn
             }
-
 
             // Chuẩn bị câu lệnh
             statement = connection.prepareStatement(sql);
@@ -608,6 +608,6 @@ public abstract class GenericDAO<T> extends DBContext {
         }
         return total;
     }
-    
+
     public abstract List<T> findAll();
 }
