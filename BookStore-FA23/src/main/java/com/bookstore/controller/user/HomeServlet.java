@@ -4,11 +4,13 @@
  */
 package com.bookstore.controller.user;
 
+import com.bookstore.constant.Constant;
 import com.bookstore.dal.GenericDAO;
 import com.bookstore.dal.impl.BookDAO;
 import com.bookstore.dal.impl.CategoryDAO;
 import com.bookstore.entity.Book;
 import com.bookstore.entity.Category;
+import com.bookstore.entity.PageControl;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -32,19 +34,40 @@ public class HomeServlet extends HttpServlet {
             throws ServletException, IOException {
         bookDAO = new BookDAO();
         categoryAO = new CategoryDAO();
+        PageControl pageControl = new PageControl();
+        //get dữ liệu từ DB lên
+        List<Book> listBook = null;
+        List<Category> listCategory = categoryAO.findAll();
 
         //tạo ra session
         HttpSession session = request.getSession();
+        //get action
+        String action;
+        try {
+            action = request.getParameter("action");
+            if (action == null) {
+                action = "";
+            }
+        } catch (Exception e) {
+            action = "";
+        }
+        
+        switch (action) {
+            default:
+                listBook = pagination(request, response, pageControl);
+                break;
+        }
+        
 
-        //get dữ liệu từ DB lên
-        List<Book> listBook = bookDAO.findAll();
-        List<Category> listCategory = categoryAO.findAll();
 
         //set listBook vaof session
         session.setAttribute("listBook", listBook);
         session.setAttribute("listCategory", listCategory);
+        request.setAttribute("pageControl", pageControl);
+        System.out.println(pageControl);
         //go to homepage 
         request.getRequestDispatcher("views/user/home-page/homePage.jsp").forward(request, response);
+//        response.sendRedirect("views/user/home-page/homePage.jsp");
     }
 
     @Override
@@ -101,6 +124,35 @@ public class HomeServlet extends HttpServlet {
         //set list vào trong session
         HttpSession session = request.getSession();
         session.setAttribute("listBook", list);
+    }
+
+    private List<Book> pagination(HttpServletRequest request,
+            HttpServletResponse response,
+            PageControl pageControl) {
+        //get page
+        String pageRaw = request.getParameter("page");
+        bookDAO = new BookDAO();
+        //valid page
+        int page;
+        try {
+            page = Integer.parseInt(pageRaw);
+        } catch (Exception e) {
+            page = 1;
+        }
+        //tìm kiếm xem có bao nhiêu record
+        int totalRecord = bookDAO.findTotalRecord();
+        //tìm kiếm xem có tổng bao nhiêu page
+        int totalPage = (totalRecord % Constant.RECORD_PER_PAGE) == 0 ?
+                (totalRecord / Constant.RECORD_PER_PAGE):
+                (totalRecord / Constant.RECORD_PER_PAGE) + 1;
+        
+        //set vao pageControl
+        pageControl.setPage(page);
+        pageControl.setTotalPage(totalPage);
+        pageControl.setTotalRecord(totalRecord);
+        
+        
+        return bookDAO.findByPage(page);
     }
 
 }

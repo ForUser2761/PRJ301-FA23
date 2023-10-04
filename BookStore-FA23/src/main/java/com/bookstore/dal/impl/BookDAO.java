@@ -1,5 +1,6 @@
 package com.bookstore.dal.impl;
 
+import com.bookstore.constant.Constant;
 import com.bookstore.dal.GenericDAO;
 import com.bookstore.entity.Book;
 import java.util.LinkedHashMap;
@@ -17,14 +18,12 @@ public class BookDAO extends GenericDAO<Book> {
     }
 
     public static void main(String[] args) {
-        for (Book book : new BookDAO().findAll()) {
-            System.out.println(book);
-        }
+        System.out.println(10 % 2);
     }
 
     public List<Book> findContainsByProperty(String field, String keyword) {
         String sql = "select * from Book \n"
-                + "where " + field  + " like ?";
+                + "where " + field + " like ?";
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("name", "%" + keyword + "%");
         return queryGenericDAO(Book.class, sql, parameterMap);
@@ -35,6 +34,21 @@ public class BookDAO extends GenericDAO<Book> {
         parameterMap = new LinkedHashMap<>();
         parameterMap.put("categoryId", id);
         return queryGenericDAO(Book.class, sql, parameterMap);
+    }
+
+    public List<Book> findByPage(int page) {
+        String sql = "select * from Book\n"
+                + "ORDER BY ID \n"
+                + "OFFSET ? ROWS \n"
+                + "FETCH NEXT ? ROWS ONLY";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("offset", (page - 1) * Constant.RECORD_PER_PAGE);
+        parameterMap.put("fetch next", Constant.RECORD_PER_PAGE);
+        return queryGenericDAO(Book.class, sql, parameterMap);
+    }
+
+    public int findTotalRecord() {
+        return findTotalRecordGenericDAO(Book.class);
     }
 
 }

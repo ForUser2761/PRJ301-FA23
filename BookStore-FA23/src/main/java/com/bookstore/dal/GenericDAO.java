@@ -4,7 +4,6 @@
  */
 package com.bookstore.dal;
 
-import com.bookstore.entity.Book;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.PreparedStatement;
@@ -97,8 +96,8 @@ public abstract class GenericDAO<T> extends DBContext {
      * về một List có thể có giá trị hoặc List rỗng
      *
      * @param clazz: tên bảng bạn muốn get dữ liệu về
+     * @param sql: câu lệnh SQL
      * @param parameterHashmap: hashmap chứa các parameter
-     * @param condition: điều kiện AND hoặc OR
      * @return list
      */
     protected List<T> queryGenericDAO(Class<T> clazz, String sql, Map<String, Object> parameterHashmap) {
@@ -108,8 +107,6 @@ public abstract class GenericDAO<T> extends DBContext {
             // Lấy kết nối
             connection = getConnection();
 
-            // Tạo câu lệnh SELECT
-            StringBuilder sqlBuilder = new StringBuilder();
             //List parameter
             List<Object> parameters = new ArrayList<>();
 
@@ -236,37 +233,18 @@ public abstract class GenericDAO<T> extends DBContext {
      * nhớ rằng hàm này không update ID vì mặc định các bảng sẽ để ID tự động
      * tăng
      *
-     * @param object: giá trị của đối tượng muốn update
+     * @param sql
      * @param parameterMap: hashmap chứa các parameter
-     * @param condition: điều kiện AND hoặc OR
      * @return true: update thành công | false: update thất bại
      */
-    protected boolean updateGenericDAO(T object, String sql, Map<String, Object> parameterMap) {
-        Class<?> clazz = object.getClass();
-        Field[] fields = clazz.getDeclaredFields();
+    protected boolean updateGenericDAO(String sql, Map<String, Object> parameterMap) {
 
         List<Object> parameters = new ArrayList<>();
 
-        for (Field field : fields) {
-            field.setAccessible(true);
-            Object fieldValue;
-            try {
-                fieldValue = field.get(object);
-            } catch (IllegalAccessException e) {
-                fieldValue = null;
-            }
-
-            parameters.add(fieldValue);
-
-        }
-
-        int index = 0;
         for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
             Object conditionValue = entry.getValue();
 
             parameters.add(conditionValue);
-
-            index++;
         }
 
         try {
@@ -274,7 +252,7 @@ public abstract class GenericDAO<T> extends DBContext {
             connection.setAutoCommit(false);
             statement = connection.prepareStatement(sql);
 
-//            int index = 1;
+            int index = 1;
             for (Object value : parameters) {
                 statement.setObject(index, value);
                 index++;
@@ -308,52 +286,28 @@ public abstract class GenericDAO<T> extends DBContext {
      * nhớ rằng hàm này không update ID vì mặc định các bảng sẽ để ID tự động
      * tăng
      *
-     * @param clazz: tên của class
+     * @param sql
      * @param parameterMap: hashmap chứa các parameter
-     * @param condition: điều kiện AND hoặc OR
      * @return true: delete thành công | false: delete thất bại
      */
-    protected boolean deleteGenericDAO(Class<T> clazz, Map<String, Object> parameterMap, boolean... condition) {
-        boolean isConditionAnd = condition.length == 0 ? CONDITION_AND : condition[0];
-        StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("DELETE FROM ").append(clazz.getSimpleName());
-
+    protected boolean deleteGenericDAO(String sql, Map<String, Object> parameterMap) {
         List<Object> parameters = new ArrayList<>();
 
-        if (sqlBuilder.charAt(sqlBuilder.length() - 2) == ',') {
-            sqlBuilder.delete(sqlBuilder.length() - 2, sqlBuilder.length());
-        }
-
-        if (parameterMap != null && !parameterMap.isEmpty()) {
-            sqlBuilder.append(" WHERE ");
-            int index = 0;
-            for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
-                String conditionField = entry.getKey();
-                Object conditionValue = entry.getValue();
-
-                if (index > 0) {
-                    // Dùng AND hoặc OR tùy thuộc vào giá trị của useOr
-                    sqlBuilder.append(isConditionAnd ? " AND " : " OR ");
-                }
-
-                sqlBuilder.append(conditionField).append(" = ?");
-                parameters.add(conditionValue);
-
-                index++;
-            }
+        for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
+            Object conditionValue = entry.getValue();
+            parameters.add(conditionValue);
         }
 
         try {
             connection = getConnection();
             connection.setAutoCommit(false);
-            statement = connection.prepareStatement(sqlBuilder.toString());
+            statement = connection.prepareStatement(sql);
 
             int index = 1;
             for (Object value : parameters) {
                 statement.setObject(index, value);
                 index++;
             }
-            System.err.println("deleteGenericDAO: " + sqlBuilder.toString());
             statement.executeUpdate();
             connection.commit();
             return true;
@@ -497,8 +451,6 @@ public abstract class GenericDAO<T> extends DBContext {
             //List parameter
             List<Object> parameters = new ArrayList<>();
 
-            System.err.println("findTotalRecordGenericDAO: " + sqlBuilder.toString());
-
             // Chuẩn bị câu lệnh
             statement = connection.prepareStatement(sqlBuilder.toString());
 
@@ -544,7 +496,6 @@ public abstract class GenericDAO<T> extends DBContext {
      *
      * @param clazz: bảng muốn tìm
      * @param parameterMap: hashmap chứa các parameter
-     * @param condition: (optional) điều kiện AND hoặc OR
      * @return số lượng record
      */
     protected int findTotalRecordGenericDAO(Class<T> clazz, String sql, Map<String, Object> parameterMap) {
@@ -608,6 +559,7 @@ public abstract class GenericDAO<T> extends DBContext {
         }
         return total;
     }
-
+    
     public abstract List<T> findAll();
+
 }
