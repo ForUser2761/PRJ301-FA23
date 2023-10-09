@@ -18,13 +18,13 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
               integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
 
-        <!-- CSS stylesheet -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css" />
 
         <!-- Font Awesome -->
         <script src="https://kit.fontawesome.com/65d7426ab6.js" crossorigin="anonymous"></script>
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- CSS stylesheet -->
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css" />
 
     </head>
 

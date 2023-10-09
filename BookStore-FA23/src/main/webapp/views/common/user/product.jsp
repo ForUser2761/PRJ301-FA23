@@ -10,11 +10,8 @@
         <div class="col-md-2 mb-sm-5">
             <ul class="list-group">
                 <c:forEach items="${listCategory}" var = "category">
-                    <li class="list-group-item" onclick="submitForm(this)">
-                        ${category.name}
-                        <form action="home?action=category" method="POST">
-                            <input type="hidden" name="id" value="${category.id}">
-                        </form>
+                    <li class="list-group-item">
+                        <a href="home?action=category&id=${category.id}" >${category.name}</a>
                     </li>
                 </c:forEach>
             </ul>

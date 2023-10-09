@@ -495,6 +495,7 @@ public abstract class GenericDAO<T> extends DBContext {
      * Tìm số lượng record của 1 bảng nào đó, điều kiện (optional)
      *
      * @param clazz: bảng muốn tìm
+     * @param sql
      * @param parameterMap: hashmap chứa các parameter
      * @return số lượng record
      */

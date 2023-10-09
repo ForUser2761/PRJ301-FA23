@@ -29,14 +29,14 @@
         </c:if>
 
         <!--PAGE - 2 (in case last page )-->
-        <c:if test="${pageControl.page == pageControl.totalPage}">
+        <c:if test="${pageControl.page == pageControl.totalPage && pageControl.totalPage > 2}">
             <li class="page-item">
                 <a class="page-link" href="home?action=pagination&page=${pageControl.page - 2}">${pageControl.page - 2}</a>
             </li>
         </c:if>
 
         <!--PAGE - 1 (in case last page )-->
-        <c:if test="${pageControl.page == pageControl.totalPage}">
+        <c:if test="${pageControl.page == pageControl.totalPage && pageControl.totalPage > 1}">
             <li class="page-item">
                 <a class="page-link" href="home?action=pagination&page=${pageControl.page - 1}">${pageControl.page - 1}</a>
             </li>
