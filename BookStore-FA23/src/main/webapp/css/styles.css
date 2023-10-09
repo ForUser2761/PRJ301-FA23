@@ -45,3 +45,7 @@
 #footer p {
     color: #fff;
 }
+
+a:hover {
+    text-decoration: none;
+}

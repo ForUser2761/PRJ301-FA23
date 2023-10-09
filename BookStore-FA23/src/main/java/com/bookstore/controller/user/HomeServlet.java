@@ -32,33 +32,20 @@ public class HomeServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        //set enconding UTF-8
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        //TAO SESSION
+        HttpSession session = request.getSession();
+        //tao DAO
         bookDAO = new BookDAO();
         categoryAO = new CategoryDAO();
+        //tao doi tuong pageControl
         PageControl pageControl = new PageControl();
-        //get dữ liệu từ DB lên
-        List<Book> listBook = null;
         List<Category> listCategory = categoryAO.findAll();
-
-        //tạo ra session
-        HttpSession session = request.getSession();
-        //get action
-        String action;
-        try {
-            action = request.getParameter("action");
-            if (action == null) {
-                action = "";
-            }
-        } catch (Exception e) {
-            action = "";
-        }
-        
-        switch (action) {
-            default:
-                listBook = pagination(request, response, pageControl);
-                break;
-        }
-        
-
+        //phân trang
+        List<Book> listBook = pagination(request, pageControl);
 
         //set listBook vaof session
         session.setAttribute("listBook", listBook);
@@ -73,29 +60,6 @@ public class HomeServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //set enconding UTF-8
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html; charset=UTF-8");
-        //initalize URL
-        String URL = "home";
-        //get ra action
-        String action = request.getParameter("action");
-        //perform function corressponding action
-        switch (action) {
-            case "search":
-                searchByName(request, response);
-                URL = "views/user/home-page/homePage.jsp";
-                break;
-            case "category":
-                searchByCategory(request, response);
-                URL = "views/user/home-page/homePage.jsp";
-                break;
-            default:
-                throw new AssertionError();
-        }
-        request.getRequestDispatcher(URL).forward(request, response);
-
     }
 
     private void searchByName(HttpServletRequest request, HttpServletResponse response) {
@@ -127,7 +91,6 @@ public class HomeServlet extends HttpServlet {
     }
 
     private List<Book> pagination(HttpServletRequest request,
-            HttpServletResponse response,
             PageControl pageControl) {
         //get page
         String pageRaw = request.getParameter("page");
@@ -139,20 +102,51 @@ public class HomeServlet extends HttpServlet {
         } catch (Exception e) {
             page = 1;
         }
-        //tìm kiếm xem có bao nhiêu record
-        int totalRecord = bookDAO.findTotalRecord();
-        //tìm kiếm xem có tổng bao nhiêu page
-        int totalPage = (totalRecord % Constant.RECORD_PER_PAGE) == 0 ?
-                (totalRecord / Constant.RECORD_PER_PAGE):
-                (totalRecord / Constant.RECORD_PER_PAGE) + 1;
-        
-        //set vao pageControl
+        int totalRecord = 0;
+        List<Book> listBook = null;
+        //get action hiện tại muốn làm gì
+        //tìm kiếm xem có bao nhiêu record và listBook By page
+        String action = request.getParameter("action") == null
+                ? "defaultFindAll"
+                : request.getParameter("action");
+        switch (action) {
+            case "search":
+                //tìm kiếm bao nhiêu record
+                String keyword = request.getParameter("keyword");
+                totalRecord = bookDAO.findTotalRecordByName(keyword);
+                ///tìm về list book
+                listBook = bookDAO.findByNameAndPage(keyword, page);
+                pageControl.setUrlPattern("home?action=search&keyword="+keyword+"&");
+                break;
+            case "category":
+                //phân trang ở dựa trên categoryId
+                //get về categoryid
+                String categoryId = request.getParameter("categoryId");
+                //tìm về totalRecord
+                totalRecord = bookDAO.findTotalRecordByCategory(categoryId);
+                //tìm về danh sách các quyển sách ở trang chỉ định và categoryId
+                listBook = bookDAO.findByCateIdAndPage(categoryId, page);
+                pageControl.setUrlPattern("home?action=category&categoryId=" + categoryId + "&");
+                break;
+            default:
+                //phân trang ở trang home
+                //tìm về totalRecord 
+                totalRecord = bookDAO.findTotalRecord();
+                //tìm về danh sách các quyển sách ở trang chỉ định
+                listBook = bookDAO.findByPage(page);
+                pageControl.setUrlPattern("home?");
+        }
+
+        //tìm kiếm xem tổng có bao nhiêu page
+        int totalPage = (totalRecord % Constant.RECORD_PER_PAGE) == 0
+                ? (totalRecord / Constant.RECORD_PER_PAGE)
+                : (totalRecord / Constant.RECORD_PER_PAGE) + 1;
+        //set những giá trị vào pageControl
         pageControl.setPage(page);
         pageControl.setTotalPage(totalPage);
         pageControl.setTotalRecord(totalRecord);
-        
-        
-        return bookDAO.findByPage(page);
+
+        return listBook;
     }
 
 }

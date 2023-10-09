@@ -35,7 +35,7 @@
 
             <!-- Header -->
         <jsp:include page="../../common/user/header.jsp"></jsp:include>
-
+        
 
             <!-- Product -->
         <jsp:include page="../../common/user/product.jsp"></jsp:include>

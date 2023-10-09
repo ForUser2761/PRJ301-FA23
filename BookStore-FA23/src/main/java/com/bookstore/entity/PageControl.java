@@ -24,6 +24,7 @@ import lombok.ToString;
 @Getter
 @Setter
 public class PageControl {
+    private String urlPattern;
     private int totalPage;
     private int totalRecord;
     private int page;
