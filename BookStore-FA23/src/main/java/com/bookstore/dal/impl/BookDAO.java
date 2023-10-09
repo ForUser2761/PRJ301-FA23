@@ -71,13 +71,14 @@ public class BookDAO extends GenericDAO<Book> {
 
     public int findTotalRecordByName(String keyword) {
         String sql = "SELECT COUNT(*) FROM BOOK where name like ?";
+        parameterMap = new LinkedHashMap<>();
         parameterMap.put("name", "%" + keyword + "%");
         return findTotalRecordGenericDAO(Book.class, sql, parameterMap);
     }
 
     public int findTotalRecordByCategory(String categoryId) {
         String sql = "SELECT COUNT(*) FROM BOOK where categoryId = ?";
-        parameterMap = new HashMap<>();
+        parameterMap = new LinkedHashMap<>();
         parameterMap.put("categoryId", categoryId);
         return findTotalRecordGenericDAO(Book.class, sql, parameterMap);
     }

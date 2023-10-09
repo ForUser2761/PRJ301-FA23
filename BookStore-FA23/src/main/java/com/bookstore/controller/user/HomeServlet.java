@@ -31,6 +31,11 @@ public class HomeServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        //set enconding UTF-8
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        //session and page control
         HttpSession session = request.getSession();
         PageControl pageControl = new PageControl();
         //phân trang sách
@@ -66,24 +71,27 @@ public class HomeServlet extends HttpServlet {
         int totalRecord;
         List<Book> listBook;
         //get action
-        String action = request.getParameter("action") == null ?
-                "defaultFindAll" :
-                request.getParameter("action");
+        String action = request.getParameter("action") == null
+                ? "defaultFindAll"
+                : request.getParameter("action");
         //tìm kiếm xem có bao nhiêu record và list record by page
         switch (action) {
             case "search":
                 String keyword = request.getParameter("keyword");
                 totalRecord = bookDAO.findTotalRecordByName(keyword);
                 listBook = bookDAO.findByNameAndPage(keyword, page);
+                pageControl.setUrlPattern("home?action=search&keyword="+keyword+"&");
                 break;
             case "category":
                 String categoryId = request.getParameter("id");
                 totalRecord = bookDAO.findTotalRecordByCategory(categoryId);
                 listBook = bookDAO.findByCateIdAndPage(categoryId, page);
+                pageControl.setUrlPattern("home?action=category&id="+categoryId+"&");
                 break;
             default:
                 totalRecord = bookDAO.findTotalRecord();
                 listBook = bookDAO.findByPage(page);
+                pageControl.setUrlPattern("home?");
         }
         //condition Map
         //tìm kiếm xem có tổng bao nhiêu page
@@ -95,7 +103,7 @@ public class HomeServlet extends HttpServlet {
         pageControl.setPage(page);
         pageControl.setTotalPage(totalPage);
         pageControl.setTotalRecord(totalRecord);
-        
+
         return listBook;
     }
 
