@@ -23,6 +23,11 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/colReorder-bootstrap4.css">
 
+        <style>
+            .error {
+                color: red;
+            }
+        </style>
     </head>
 
     <body id="page-top">
@@ -68,9 +73,9 @@
             <!-- Logout Modal-->
         <jsp:include page="../../common/admin/logOutModal.jsp"></jsp:include>
 
-
-        <!-- Bootstrap core JavaScript-->
-        <script src="${pageContext.request.contextPath}/vendor/jquery/jquery.min.js"></script>
+        <jsp:include page="../../common/admin/addBookModal.jsp"></jsp:include>
+            <!-- Bootstrap core JavaScript-->
+            <script src="${pageContext.request.contextPath}/vendor/jquery/jquery.min.js"></script>
         <script src="${pageContext.request.contextPath}/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
         <!-- Core plugin JavaScript-->

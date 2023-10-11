@@ -110,4 +110,9 @@ public class BookDAO extends GenericDAO<Book> {
         return queryGenericDAO(Book.class, sql, parameterMap);
     }
 
+    @Override
+    public int insert(Book book) {
+        return insertGenericDAO(book);
+    }
+
 }

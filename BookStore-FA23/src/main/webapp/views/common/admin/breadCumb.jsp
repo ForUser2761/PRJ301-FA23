@@ -10,4 +10,9 @@
         <a href="#">Dashboard</a>
     </li>
     <li class="breadcrumb-item active">Overview</li>
+    <li class="breadcrumb-item ml-auto">
+        <button class="btn btn-success" type="button" data-toggle="modal" data-target="#addBookModal">
+            <i class="fas fa-plus"></i> Add book
+        </button>
+    </li>
 </ol>

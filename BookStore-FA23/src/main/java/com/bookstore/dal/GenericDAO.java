@@ -561,5 +561,7 @@ public abstract class GenericDAO<T> extends DBContext {
     }
     
     public abstract List<T> findAll();
+    
+    public abstract int insert(T t);
 
 }

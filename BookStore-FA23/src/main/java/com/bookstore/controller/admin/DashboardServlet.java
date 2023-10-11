@@ -7,33 +7,41 @@ package com.bookstore.controller.admin;
 import com.bookstore.dal.impl.BookDAO;
 import com.bookstore.entity.Book;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import com.bookstore.entity.Category;
+import com.bookstore.dal.impl.CategoryDAO;
+import java.io.File;
+import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.http.Part;
 
 /**
  *
  * @author ADMIN
  */
+@MultipartConfig
 public class DashboardServlet extends HttpServlet {
     BookDAO bookDAO;
-    
+    CategoryDAO categoryDAO;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         //tạo ra đối tượng DAO
         bookDAO = new BookDAO();
+        categoryDAO = new CategoryDAO();
         //tạo ra đối tượng session
         HttpSession session = request.getSession();
         //tìm về toàn bộ danh sách các sản phẩm sách
         List<Book> listBooks = bookDAO.findAll();
-        
+        List<Category> listCategory = categoryDAO.findAll();
         //set vao session
         session.setAttribute("listBook", listBooks);
+        session.setAttribute("listCategories", listCategory);
         //chuyển qua trang dashboard.jsp
         request.getRequestDispatcher("../views/admin/dashboard/dashboard.jsp").forward(request, response);
     }
@@ -41,7 +49,69 @@ public class DashboardServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        //set enconding UTF-8
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        //TAO SESSION
+        HttpSession session = request.getSession();
+
+        String action = request.getParameter("action") == null
+                ? ""
+                : request.getParameter("action");
+        switch (action) {
+            case "add":
+                addBook(request);
+                break;
+            default:
+                throw new AssertionError();
+        }
+
     }
 
+    private void addBook(HttpServletRequest request) {
+        //tạo đối tượng DAO
+        bookDAO = new BookDAO();
+        //get information
+        //get name
+        String name = request.getParameter("name");
+        //get author
+        String author = request.getParameter("author");
+        //get price
+        int price = Integer.parseInt(request.getParameter("price"));
+        //get quantity
+        int quantity = Integer.parseInt(request.getParameter("quantity"));
+        //get description
+        String description = request.getParameter("description");
+         //get category Id
+        int categoryId = Integer.parseInt(request.getParameter("category"));
+        try {
+            Part part = request.getPart("image");
+            
+            //đường dẫn lưu ảnh
+            String path = request.getServletContext().getRealPath("/images");
+            File dir = new File(path);
+            //ko có đường dẫn => tự tạo ra
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            File image = new File(dir, part.getSubmittedFileName());
+            part.write(image.getAbsolutePath());
+            
+            Book book = Book.builder()
+                    .name(name)
+                    .author(author)
+                    .price(price)
+                    .quantity(quantity)
+                    .description(description)
+                    .categoryId(categoryId)
+                    .image("/BookStore-FA23/images/"+image.getName())
+                    .build();
+            bookDAO.insert(book);
+        } catch (Exception e) {
+        }
+        //tạo đối tượng Book
+    }
 
 }
