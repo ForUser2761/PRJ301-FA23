@@ -4,9 +4,17 @@
         <servlet-name>HomeServlet</servlet-name>
         <servlet-class>com.bookstore.controller.user.HomeServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>DashboardServlet</servlet-name>
+        <servlet-class>com.bookstore.controller.admin.DashboardServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeServlet</servlet-name>
         <url-pattern>/home</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DashboardServlet</servlet-name>
+        <url-pattern>/admin/dashboard</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
