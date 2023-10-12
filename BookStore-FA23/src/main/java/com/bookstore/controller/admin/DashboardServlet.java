@@ -66,6 +66,7 @@ public class DashboardServlet extends HttpServlet {
             default:
                 throw new AssertionError();
         }
+        response.sendRedirect("dashboard");
 
     }
 
@@ -85,6 +86,7 @@ public class DashboardServlet extends HttpServlet {
         String description = request.getParameter("description");
          //get category Id
         int categoryId = Integer.parseInt(request.getParameter("category"));
+        String imagePath = null;
         try {
             Part part = request.getPart("image");
             
@@ -98,19 +100,19 @@ public class DashboardServlet extends HttpServlet {
             
             File image = new File(dir, part.getSubmittedFileName());
             part.write(image.getAbsolutePath());
-            
-            Book book = Book.builder()
-                    .name(name)
-                    .author(author)
-                    .price(price)
-                    .quantity(quantity)
-                    .description(description)
-                    .categoryId(categoryId)
-                    .image("/BookStore-FA23/images/"+image.getName())
-                    .build();
-            bookDAO.insert(book);
+            imagePath = "/BookStore-FA23/images/"+image.getName();
         } catch (Exception e) {
         }
+        Book book = Book.builder()
+                .name(name)
+                .author(author)
+                .price(price)
+                .quantity(quantity)
+                .description(description)
+                .categoryId(categoryId)
+                .image(imagePath)
+                .build();
+        bookDAO.insert(book);
         //tạo đối tượng Book
     }
 

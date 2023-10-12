@@ -16,6 +16,7 @@
                         <th>Price</th>
                         <th>Quantity</th>
                         <th>Description</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tfoot>
@@ -26,6 +27,7 @@
                         <th>Price</th>
                         <th>Quantity</th>
                         <th>Description</th>
+                        <th>Action</th>
                     </tr>
                 </tfoot>
                 <tbody>
@@ -48,6 +50,15 @@
                             <td>${book.quantity}</td>
                             <!--Description-->
                             <td>${book.description}</td>
+                            <td>
+                                <!--Edit-->
+                                <i class="fa fa-edit fa-2x" style="color: #469408" data-toggle="modal" data-target="#editBookModal"></i>
+                                &nbsp;&nbsp;&nbsp;
+                                <!--Delete-->
+                                <i class="fa fa-trash fa-2x" style="color: #e70808" data-toggle="modal" data-target="#delete-modal"">
+                                </i>
+
+                            </td>
                         </tr>
                     </c:forEach>
 
