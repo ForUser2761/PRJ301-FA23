@@ -52,10 +52,19 @@
                             <td>${book.description}</td>
                             <td>
                                 <!--Edit-->
-                                <i class="fa fa-edit fa-2x" style="color: #469408" data-toggle="modal" data-target="#editBookModal"></i>
+                                <i class="fa fa-edit fa-2x"
+                                   style="color: #469408"
+                                   data-toggle="modal"
+                                   data-target="#editBookModal"
+                                   ">
+                                </i>
                                 &nbsp;&nbsp;&nbsp;
                                 <!--Delete-->
-                                <i class="fa fa-trash fa-2x" style="color: #e70808" data-toggle="modal" data-target="#delete-modal"">
+                                <i class="fa fa-trash fa-2x"
+                                   style="color: #e70808"
+                                   data-toggle="modal"
+                                   data-target="#delete-modal"
+                                   onclick="deleteBookModal(${book.id})">
                                 </i>
 
                             </td>
