@@ -123,4 +123,26 @@ public class BookDAO extends GenericDAO<Book> {
         updateGenericDAO(sql, parameterMap);
     }
 
+    public void updateBook(Book book) {
+        String sql = "UPDATE [dbo].[Book]\n"
+                + "   SET [name] =?\n"
+                + "      ,[image] = ?\n"
+                + "      ,[quantity] = ?\n"
+                + "      ,[author] = ?\n"
+                + "      ,[price] = ?\n"
+                + "      ,[description] = ?\n"
+                + "      ,[categoryId] = ?\n"
+                + " WHERE id = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("name", book.getName());
+        parameterMap.put("image", book.getImage());
+        parameterMap.put("quantity", book.getQuantity());
+        parameterMap.put("author", book.getAuthor());
+        parameterMap.put("price", book.getPrice());
+        parameterMap.put("description", book.getDescription());
+        parameterMap.put("categoryId", book.getCategoryId());
+        parameterMap.put("id", book.getId());
+        updateGenericDAO(sql, parameterMap);
+    }
+
 }

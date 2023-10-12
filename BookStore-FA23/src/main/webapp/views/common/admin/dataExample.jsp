@@ -56,7 +56,16 @@
                                    style="color: #469408"
                                    data-toggle="modal"
                                    data-target="#editBookModal"
-                                   ">
+                                   onclick="editBookModal(
+                                           ${book.id},
+                                           `${book.name}`,
+                                           `${book.description}`,
+                                           `${book.author}`,
+                                           ${book.price},
+                                           ${book.quantity},
+                                           `${book.image}`,
+                                           ${book.categoryId})"
+">
                                 </i>
                                 &nbsp;&nbsp;&nbsp;
                                 <!--Delete-->

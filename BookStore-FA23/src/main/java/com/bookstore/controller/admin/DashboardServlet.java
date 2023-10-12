@@ -66,6 +66,9 @@ public class DashboardServlet extends HttpServlet {
             case "delete":
                 delete(request);
                 break;
+            case "edit":
+                edit(request);
+                break;
             default:
                 throw new AssertionError();
         }
@@ -87,12 +90,12 @@ public class DashboardServlet extends HttpServlet {
         int quantity = Integer.parseInt(request.getParameter("quantity"));
         //get description
         String description = request.getParameter("description");
-         //get category Id
+        //get category Id
         int categoryId = Integer.parseInt(request.getParameter("category"));
         String imagePath = null;
         try {
             Part part = request.getPart("image");
-            
+
             //đường dẫn lưu ảnh
             String path = request.getServletContext().getRealPath("/images");
             File dir = new File(path);
@@ -100,10 +103,10 @@ public class DashboardServlet extends HttpServlet {
             if (!dir.exists()) {
                 dir.mkdirs();
             }
-            
+
             File image = new File(dir, part.getSubmittedFileName());
             part.write(image.getAbsolutePath());
-            imagePath = "/BookStore-FA23/images/"+image.getName();
+            imagePath = "/BookStore-FA23/images/" + image.getName();
         } catch (Exception e) {
         }
         Book book = Book.builder()
@@ -126,6 +129,67 @@ public class DashboardServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         //delete book by id
         bookDAO.deleteById(id);
+    }
+
+    private void edit(HttpServletRequest request) {
+        Book book = new Book();
+        //get information
+        //get id
+        String id = request.getParameter("id");
+        //get name
+        String name = request.getParameter("name");
+        //get author
+        String author = request.getParameter("author");
+        //get price
+        int price = Integer.parseInt(request.getParameter("price"));
+        //get quantity
+        int quantity = Integer.parseInt(request.getParameter("quantity"));
+        //get description
+        String description = request.getParameter("description");
+        //get category Id
+        int categoryId = Integer.parseInt(request.getParameter("category"));
+        
+        String imagePath = null;
+        //get image
+        try {
+
+            Part part = request.getPart("image");
+            if (part == null || part.getSize() <= 0) {
+                // Sử dụng ảnh hiện tại và cập nhật đường dẫn (imagePath)
+                String currentImage = request.getParameter("currentImage");
+                book.setImage(currentImage);
+            } else {
+                try {
+                    String path = request.getServletContext().getRealPath("/images");
+                    File dir = new File(path);
+                    //ko có đường dẫn => tự tạo ra
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+
+                    File image = new File(dir, part.getSubmittedFileName());
+                    part.write(image.getAbsolutePath());
+                    imagePath = "/BookStore-FA23/images/" + image.getName();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        //setter parameter
+        book.setId(id);
+        book.setName(name);
+        book.setAuthor(author);
+        book.setPrice(price);
+        book.setQuantity(quantity);
+        book.setDescription(description);
+        book.setCategoryId(categoryId);
+        book.setImage(imagePath);
+       
+        //taoj doi tuong
+        BookDAO dao = new BookDAO();
+        dao.updateBook(book);
     }
 
 }

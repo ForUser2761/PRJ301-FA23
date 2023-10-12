@@ -78,6 +78,10 @@
 
             <!--Delete book modal-->
         <jsp:include page="../../common/admin/deleteBookModal.jsp"></jsp:include>
+
+            <!--Edit Book Modal-->
+        <jsp:include page="../../common/admin/editBookModal.jsp"></jsp:include>
+
             <!-- Bootstrap core JavaScript-->
             <script src="${pageContext.request.contextPath}/vendor/jquery/jquery.min.js"></script>
         <script src="${pageContext.request.contextPath}/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
