@@ -55,7 +55,6 @@ public class AuthenServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Account account;
         //get action
         String action = request.getParameter("action") == null
                 ? "login"
@@ -64,6 +63,9 @@ public class AuthenServlet extends HttpServlet {
         switch (action) {
             case "login":
                 loginDoPost(request, response);
+                break;
+            case "register":
+                registerDoPost(request, response);
                 break;
             default:
                 throw new AssertionError();
@@ -90,22 +92,52 @@ public class AuthenServlet extends HttpServlet {
         if (account == null) {
             request.setAttribute("error", "Username or password incorrect !");
             //chuyển lại về trang login.jsp
-            request.getRequestDispatcher("views/user/home-page/login.jsp").forward(request, response); 
-            
-        }else {
+            request.getRequestDispatcher("views/user/home-page/login.jsp").forward(request, response);
+
+        } else {
             //set vào session account
             HttpSession session = request.getSession();
             session.setAttribute(Constant.SESSION_ACCOUNT, account);
-            
+
             //chuyển về trang home
             response.sendRedirect("home");
         }
-                
+
     }
 
     private void logoutDoGet(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession();
         session.removeAttribute(Constant.SESSION_ACCOUNT);
+    }
+
+    private void registerDoPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //tạo đối townjg session, accountDAO
+        accountDAO = new AccountDAO();
+        //get về các thông tin
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String email = request.getParameter("email");
+        
+        //tạo đối tượng từ dữ liệu đã get về
+        Account account = Account.builder()
+                        .username(username)
+                        .password(password)
+                        .email(email)
+                        .roleId(Constant.ROLE_USER)
+                        .build();
+        
+        //kiểm tra xem username đã từng tồn tại trong DB chưa
+        boolean isExist = accountDAO.findByUsername(username);
+        if (!isExist) {
+            //nếu chưa từng tồn tại thì mới insert dữ liệu vào DB
+            accountDAO.insert(account);
+            //chuyển về trang home
+            response.sendRedirect("home");
+        }else {
+            //chuyển về trang home
+            request.setAttribute("error", "Account exist, please choose other !!");
+            request.getRequestDispatcher("views/user/home-page/register.jsp").forward(request, response);
+        }
     }
 
 }

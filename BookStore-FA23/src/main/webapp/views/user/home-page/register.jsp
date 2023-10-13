@@ -50,7 +50,7 @@
         <div class="container">
             <div class="register-container">
                 <h2>Register</h2>
-                <form action="register" method="POST">
+                <form action="authen?action=register" method="POST">
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" class="form-control" id="username" placeholder="Enter your username" required name="username"> 
