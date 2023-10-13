@@ -45,7 +45,9 @@
                     <span class="badge bg-dark text-white mr-auto rounded-pill">0</span>
                 </button>
 
-                <button class="btn btn-outline-primary ml-2">Login</button>
+                <a href="${pageContext.request.contextPath}/authen?action=login">
+                    <button class="btn btn-outline-primary ml-2">Login</button>
+                </a>
             </div>
 
         </nav>

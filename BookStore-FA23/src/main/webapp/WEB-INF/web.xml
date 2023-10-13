@@ -8,6 +8,10 @@
         <servlet-name>DashboardServlet</servlet-name>
         <servlet-class>com.bookstore.controller.admin.DashboardServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AuthenServlet</servlet-name>
+        <servlet-class>com.bookstore.controller.user.AuthenServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeServlet</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -15,6 +19,10 @@
     <servlet-mapping>
         <servlet-name>DashboardServlet</servlet-name>
         <url-pattern>/admin/dashboard</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AuthenServlet</servlet-name>
+        <url-pattern>/authen</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
