@@ -3,6 +3,7 @@
     Created on : Oct 2, 2023, 8:16:33 PM
     Author     : ADMIN
 --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <section id="navigation-bar">
     <div class="container-fluid">
@@ -44,10 +45,20 @@
                     <i class="fa-solid fa-cart-shopping"></i>Cart
                     <span class="badge bg-dark text-white mr-auto rounded-pill">0</span>
                 </button>
-
-                <a href="${pageContext.request.contextPath}/authen?action=login">
-                    <button class="btn btn-outline-primary ml-2">Login</button>
-                </a>
+                <!--Nếu như account trên session = null => hiển thị ra nút Login-->
+                <c:if test="${sessionScope.account == null}">
+                    <a href="${pageContext.request.contextPath}/authen?action=login">
+                        <button class="btn btn-outline-primary ml-2">Login</button>
+                    </a>
+                </c:if>
+                <!--Nếu như account trên sesson != null => hiển thị ra nút logout-->
+                <c:if test="${sessionScope.account != null}">
+                    <a href="${pageContext.request.contextPath}/authen?action=logout">
+                        <button class="btn btn-outline-primary">
+                            Logout
+                        </button>
+                    </a>
+                </c:if>
             </div>
 
         </nav>

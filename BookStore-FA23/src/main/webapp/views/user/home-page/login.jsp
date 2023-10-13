@@ -56,7 +56,7 @@
         <div class="container">
             <div class="login-container">
                 <h2>Login</h2>
-                <form action="login" method="POST">
+                <form action="authen?action=login" method="POST">
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" class="form-control" id="username" placeholder="Enter your username"

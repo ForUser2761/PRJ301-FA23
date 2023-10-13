@@ -4,12 +4,16 @@
  */
 package com.bookstore.controller.user;
 
+import com.bookstore.constant.Constant;
+import com.bookstore.dal.impl.AccountDAO;
+import com.bookstore.entity.Account;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -17,15 +21,16 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class AuthenServlet extends HttpServlet {
 
+    AccountDAO accountDAO;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String url;
         //get action
-        String action = request.getParameter("action") == null ?
-                "login" :
-                request.getParameter("action");
+        String action = request.getParameter("action") == null
+                ? "login"
+                : request.getParameter("action");
         //switch action
         switch (action) {
             case "login":
@@ -35,6 +40,10 @@ public class AuthenServlet extends HttpServlet {
             case "register":
                 //url = "register.jsp"
                 url = "views/user/home-page/register.jsp";
+                break;
+            case "logout":
+                logoutDoGet(request, response);
+                url = "home";
                 break;
             default:
                 url = "login";
@@ -46,11 +55,57 @@ public class AuthenServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        Account account;
+        //get action
+        String action = request.getParameter("action") == null
+                ? "login"
+                : request.getParameter("action");
+        //switch action
+        switch (action) {
+            case "login":
+                loginDoPost(request, response);
+                break;
+            default:
+                throw new AssertionError();
+        }
     }
 
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+    private void loginDoPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        //tạo đối tượng AccountDAO
+        accountDAO = new AccountDAO();
+        //get ve cac thong tin 
+        //get username
+        String username = request.getParameter("username");
+        //get password
+        String password = request.getParameter("password");
+
+        Account account = Account.builder()
+                .username(username)
+                .password(password)
+                .build();
+        //kiểm tra xem account có tồn tại trong DB
+        account = accountDAO.findByUsernamePassword(account);
+        //nếu account không tồn tài <=> tài khoảng hoặc mật khẩu sai
+        if (account == null) {
+            request.setAttribute("error", "Username or password incorrect !");
+            //chuyển lại về trang login.jsp
+            request.getRequestDispatcher("views/user/home-page/login.jsp").forward(request, response); 
+            
+        }else {
+            //set vào session account
+            HttpSession session = request.getSession();
+            session.setAttribute(Constant.SESSION_ACCOUNT, account);
+            
+            //chuyển về trang home
+            response.sendRedirect("home");
+        }
+                
+    }
+
+    private void logoutDoGet(HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession();
+        session.removeAttribute(Constant.SESSION_ACCOUNT);
+    }
 
 }
