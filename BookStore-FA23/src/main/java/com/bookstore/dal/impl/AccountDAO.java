@@ -59,4 +59,16 @@ public class AccountDAO extends GenericDAO<Account> {
         return !list.isEmpty();
     }
 
+    public void updateProfile(Account account) {
+        String sql = "UPDATE [dbo].[Account]\n"
+                + "   SET [email] = ?\n"
+                + "      ,[address] = ?\n"
+                + " WHERE username = ?";
+        parameterMap = new LinkedHashMap<>();
+        parameterMap.put("email", account.getEmail());
+        parameterMap.put("address", account.getAddress());
+        parameterMap.put("username", account.getUsername());
+        updateGenericDAO(sql, parameterMap);
+    }
+
 }
