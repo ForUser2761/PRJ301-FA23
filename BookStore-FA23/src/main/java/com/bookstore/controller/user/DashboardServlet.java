@@ -16,7 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class DashboardServlet extends HttpServlet {
+
     AccountDAO accountDAO = new AccountDAO();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -34,7 +36,7 @@ public class DashboardServlet extends HttpServlet {
                 url = "";
                 break;
             case "change-password":
-                url = "";
+                url = "views/user/dashboard/change-password.jsp";
                 break;
             default:
                 url = "views/user/dashboard/dashboard.jsp";
@@ -57,6 +59,10 @@ public class DashboardServlet extends HttpServlet {
                 updateProfileDoPost(request);
                 url = "views/user/dashboard/profile.jsp";
                 break;
+            case "change-password":
+                changePassword(request);
+                url = "views/user/dashboard/change-password.jsp";
+                break;
             default:
                 url = "dashboard";
                 break;
@@ -65,15 +71,15 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private void updateProfileDoPost(HttpServletRequest request) {
-        String address =request.getParameter("address");
+        String address = request.getParameter("address");
         String email = request.getParameter("email");
         String username = request.getParameter("username");
-        
+
         Account account = Account.builder()
-                            .username(username)
-                            .address(address)
-                            .email(email)
-                            .build();
+                .username(username)
+                .address(address)
+                .email(email)
+                .build();
         accountDAO.updateProfile(account);
         //update lai account vao session
         HttpSession session = request.getSession();
@@ -82,6 +88,25 @@ public class DashboardServlet extends HttpServlet {
         accountNew.setAddress(address);
         session.setAttribute(Constant.SESSION_ACCOUNT, accountNew);
 
+    }
+
+    private void changePassword(HttpServletRequest request) {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String newPassword = request.getParameter("newPassword");
+        
+        //lay ve account tu trong session
+        HttpSession session = request.getSession();
+        Account accountSession = (Account) session.getAttribute(Constant.SESSION_ACCOUNT);
+        
+        //kiem tra xem password co = password o trong session
+        if (password.equals(accountSession.getPassword())) {
+            accountDAO.updatePassword(username, password);
+            accountSession.setPassword(password);
+            session.setAttribute(Constant.SESSION_ACCOUNT, accountSession);
+        }else {
+            request.setAttribute("error", "Incorrect password");
+        }
     }
 
 }
