@@ -58,6 +58,12 @@
                             Logout
                         </button>
                     </a>
+                    <a href="${pageContext.request.contextPath}/dashboard" class="ml-3">
+                        <button class="btn btn-outline-success">
+                            ${sessionScope.account.username}
+                        </button>
+                    </a>
+
                 </c:if>
             </div>
 
