@@ -21,7 +21,7 @@ public class OrderDetailsDAO extends GenericDAO<OrderDetails>{
 
     @Override
     public int insert(OrderDetails t) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return insertGenericDAO(t);
     }
     
 }

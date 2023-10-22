@@ -432,6 +432,66 @@ public abstract class GenericDAO<T> extends DBContext {
         // Trả về ID được tạo tự động (nếu có)
         return id;
     }
+    
+    protected int insertGenericDAO(String sql, Map<String, Object> parameterMap) {
+        List<Object> parameters = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
+            Object conditionValue = entry.getValue();
+
+            parameters.add(conditionValue);
+        }
+
+        connection = getConnection();
+        int id = 0;
+        try {
+            // Bắt đầu giao dịch và chuẩn bị câu truy vấn
+            connection.setAutoCommit(false);
+            statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            int index = 1;
+            for (Object value : parameters) {
+                statement.setObject(index, value);
+                index++;
+            }
+
+            // Thực thi câu truy vấn
+            statement.executeUpdate();
+
+            // Lấy khóa chính (ID) được tạo tự động
+            resultSet = statement.getGeneratedKeys();
+            if (resultSet.next()) {
+                id = resultSet.getInt(1);
+            }
+            // Xác nhận giao dịch thành công
+            connection.commit();
+        } catch (SQLException e) {
+            try {
+                System.err.println("4USER: Bắn Exception ở hàm insert: " + e.getMessage());
+                // Hoàn tác giao dịch nếu xảy ra lỗi
+                connection.rollback();
+            } catch (SQLException ex) {
+                System.err.println("4USER: Bắn Exception ở hàm insert: " + ex.getMessage());
+            }
+        } finally {
+            // Đảm bảo đóng kết nối và tài nguyên
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("4USER: Bắn Exception ở hàm insert: " + e.getMessage());
+            }
+        }
+        // Trả về ID được tạo tự động (nếu có)
+        return id;
+    }
 
     /**
      * Tìm số lượng record của 1 bảng nào đó
