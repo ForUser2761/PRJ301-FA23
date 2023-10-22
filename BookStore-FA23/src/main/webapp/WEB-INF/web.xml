@@ -4,6 +4,17 @@
         <filter-name>AdminFilter</filter-name>
         <filter-class>com.bookstore.filter.AdminFilter</filter-class>
     </filter>
+    <filter>
+        <filter-name>UserFilter</filter-name>
+        <filter-class>com.bookstore.filter.UserFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>UserFilter</filter-name>
+        <url-pattern>/cart</url-pattern>
+        <url-pattern>/check-out</url-pattern>
+        <url-pattern>/dashboard</url-pattern>
+        
+    </filter-mapping>
     <filter-mapping>
         <filter-name>AdminFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>

@@ -111,6 +111,7 @@ public class AuthenServlet extends HttpServlet {
     private void logoutDoGet(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession();
         session.removeAttribute(Constant.SESSION_ACCOUNT);
+        session.removeAttribute("cart");
     }
 
     private void registerDoPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
