@@ -58,11 +58,20 @@
                             Logout
                         </button>
                     </a>
-                    <a href="${pageContext.request.contextPath}/dashboard" class="ml-3">
-                        <button class="btn btn-outline-success">
-                            ${sessionScope.account.username}
-                        </button>
-                    </a>
+                    <c:if test="${sessionScope.account.roleId == 2}">
+                        <a href="${pageContext.request.contextPath}/dashboard" class="ml-3">
+                            <button class="btn btn-outline-success">
+                                ${sessionScope.account.username}
+                            </button>
+                        </a>
+                    </c:if>
+                    <c:if test="${sessionScope.account.roleId == 1}">
+                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="ml-3">
+                            <button class="btn btn-outline-success">
+                                ${sessionScope.account.username}
+                            </button>
+                        </a>
+                    </c:if>
 
                 </c:if>
             </div>

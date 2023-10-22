@@ -38,7 +38,8 @@
 
                             <div class="card-footer  bg-transparent border-top-0">
                                 <div class="text-center">
-                                    <a href="#" class="btn btn-outline-dark">View option</a>
+                                    <a href="${pageContext.request.contextPath}/product-details?id=${book.id}" 
+                                       class="btn btn-outline-dark">View option</a>
                                 </div>
                             </div>
                         </div>

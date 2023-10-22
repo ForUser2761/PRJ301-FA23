@@ -98,9 +98,12 @@ public class AuthenServlet extends HttpServlet {
             //set vào session account
             HttpSession session = request.getSession();
             session.setAttribute(Constant.SESSION_ACCOUNT, account);
-
-            //chuyển về trang home
-            response.sendRedirect("home");
+            if (account.getRoleId() == Constant.ROLE_ADMIN) {
+                response.sendRedirect("admin/dashboard");
+            }else {
+                //chuyển về trang home
+                response.sendRedirect("home");
+            }
         }
 
     }
